@@ -152,7 +152,7 @@ interface SendResult {
 
 interface ClaudeChatInputProps {
   /** Base URL the typed text is sent to, e.g. "https://api.example.com/search" or "/api/ask" */
-  endpoint: string;
+  endpoint: "http://127.0.0.1:8000/recommend";
   /** Key used in the JSON body. Defaults to "query". */
   queryParam?: string;
   /** Extra fields merged into the JSON body, e.g. { sessionId: "abc" }. */
