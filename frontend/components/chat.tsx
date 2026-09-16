@@ -151,8 +151,12 @@ interface SendResult {
 }
 
 interface ClaudeChatInputProps {
-  /** Base URL the typed text is sent to, e.g. "https://api.example.com/search" or "/api/ask" */
-  endpoint: "http://127.0.0.1:8000/recommend";
+  /**
+   * Base URL the typed text is POSTed to. Optional — defaults to the
+   * local FastAPI dev server below. Override per-page, and in
+   * production pull this from an env var (see the bottom of this file).
+   */
+  endpoint?: string;
   /** Key used in the JSON body. Defaults to "query". */
   queryParam?: string;
   /** Extra fields merged into the JSON body, e.g. { sessionId: "abc" }. */
@@ -175,7 +179,7 @@ interface ClaudeChatInputProps {
 }
 
 export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({
-  endpoint,
+  endpoint = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/recommend",
   queryParam = "query",
   extraFields,
   extraParams,
@@ -442,14 +446,3 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({
     </div>
   );
 };
-
-export default function ChatPage() {
-  return (
-    <div className="w-full flex-1 flex flex-col justify-center items-center p-4">
-      <ClaudeChatInput
-        endpoint="/api/ask"
-        onResponse={(result) => console.log("Response:", result.data)}
-      />
-    </div>
-  );
-}
