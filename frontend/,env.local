@@ -1,0 +1,34 @@
+# Create this file at the ROOT of your project — same folder as package.json.
+# Name it exactly:  .env.local
+#
+# Fill in each value after the "=" with what's in your Vercel dashboard
+# (Project Settings → Environment Variables → click the eye icon to reveal).
+# No quotes needed, no spaces around the "=".
+
+# --- Supabase: client-side (safe to expose in the browser) ---
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndjbXZ5ZXJid3VtaGFlaHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMTc2NTUsImV4cCI6MjEwNDU5MzY1NX0.sjW_rDBER-iyX_8xL2Va-C6ktC7IF6h3IaOnz_3XrS4
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+
+# --- Supabase: server-side only (never expose these to the browser) ---
+SUPABASE_URL=https://gunwcmvyerbwumhaehwm.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndjbXZ5ZXJid3VtaGFlaHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMTc2NTUsImV4cCI6MjEwNDU5MzY1NX0.sjW_rDBER-iyX_8xL2Va-C6ktC7IF6h3IaOnz_3XrS4
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndjbXZ5ZXJid3VtaGFlaHdtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4OTAxNzY1NSwiZXhwIjoyMTA0NTkzNjU1fQ.PiRBb1z_-m9z7-Ppw6yNrCb_opb66VRmlKvR302k36g
+SUPABASE_SECRET_KEY=sb_secret_T_ZRHmS4kl3Yew4qGD2sPQ_bYWUA1ky
+SUPABASE_JWT_SECRET=DO3pE6UAFO+lA2KDXNRnzZT51QPUt/JrWU/rVOeLBqvZdtlLfpA5xAkWVppNXPVPcXHyem0CrSzfbWuGqCF8xw==
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_UHfszwAwC18ZyjE-e2Oneg_hd6qApDl
+
+# --- Postgres (direct DB access, server-side only) ---
+POSTGRES_URL=postgres://postgres.gunwcmvyerbwumhaehwm:PMZkdvRnUbYIuZLT@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+POSTGRES_URL_NON_POOLING=postgres://postgres.gunwcmvyerbwumhaehwm:PMZkdvRnUbYIuZLT@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+POSTGRES_PRISMA_URL=postgres://postgres.gunwcmvyerbwumhaehwm:PMZkdvRnUbYIuZLT@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=PMZkdvRnUbYIuZLT
+POSTGRES_HOST=db.gunwcmvyerbwumhaehwm.supabase.co
+POSTGRES_DATABASE=postgres
+
+# --- Your own backend, from the chat component setup ---
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/recommend
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndjbXZ5ZXJid3VtaGFlaHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMTc2NTUsImV4cCI6MjEwNDU5MzY1NX0.sjW_rDBER-iyX_8xL2Va-C6ktC7IF6h3IaOnz_3XrS4
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_UHfszwAwC18ZyjE-e2Oneg_hd6qApDl
+NEXT_PUBLIC_SUPABASE_URL=https://gunwcmvyerbwumhaehwm.supabase.co
