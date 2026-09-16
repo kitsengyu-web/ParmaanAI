@@ -452,10 +452,11 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       container.appendChild(renderer.domElement);
       if (transparent) renderer.setClearAlpha(0);
       else renderer.setClearColor(0x000000, 1);
+      const safeColor = color || '#B497CF';
       const uniforms = {
         uResolution: { value: new THREE.Vector2(0, 0) },
         uTime: { value: 0 },
-        uColor: { value: new THREE.Color(color) },
+        uColor: { value: new THREE.Color(safeColor) },
         uClickPos: {
           value: Array.from({ length: MAX_CLICKS }, () => new THREE.Vector2(-1, -1))
         },
@@ -582,30 +583,38 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
         passive: true
       });
       let raf = 0;
+      let cancelled = false;
       const animate = () => {
+        if (cancelled || !threeRef.current) return;
         if (autoPauseOffscreen && !visibilityRef.current.visible) {
           raf = requestAnimationFrame(animate);
           return;
         }
-        uniforms.uTime.value = timeOffset + clock.getElapsedTime() * speedRef.current;
-        if (liquidEffect) {
-          const liqEffect = liquidEffect as Effect & { uniforms: Map<string, THREE.Uniform> };
-          const timeUniform = liqEffect.uniforms.get('uTime');
-          if (timeUniform) timeUniform.value = uniforms.uTime.value;
+        try {
+          uniforms.uTime.value = timeOffset + clock.getElapsedTime() * speedRef.current;
+          if (liquidEffect) {
+            const liqEffect = liquidEffect as Effect & { uniforms: Map<string, THREE.Uniform> };
+            const timeUniform = liqEffect.uniforms.get('uTime');
+            if (timeUniform) timeUniform.value = uniforms.uTime.value;
+          }
+          if (composer) {
+            if (touch) touch.update();
+            composer.passes.forEach(p => {
+              const pass = p as { effects?: Array<Effect & { uniforms: Map<string, THREE.Uniform> }> };
+              if (pass.effects) {
+                pass.effects.forEach(eff => {
+                  const timeUniform = eff.uniforms?.get('uTime');
+                  if (timeUniform) timeUniform.value = uniforms.uTime.value;
+                });
+              }
+            });
+            composer.render();
+          } else if (renderer && scene && camera) {
+            renderer.render(scene, camera);
+          }
+        } catch {
+          // Prevent RAF unhandled error if context is disposed
         }
-        if (composer) {
-          if (touch) touch.update();
-          composer.passes.forEach(p => {
-            const pass = p as { effects?: Array<Effect & { uniforms: Map<string, THREE.Uniform> }> };
-            if (pass.effects) {
-              pass.effects.forEach(eff => {
-                const timeUniform = eff.uniforms?.get('uTime');
-                if (timeUniform) timeUniform.value = uniforms.uTime.value;
-              });
-            }
-          });
-          composer.render();
-        } else renderer.render(scene, camera);
         raf = requestAnimationFrame(animate);
       };
       raf = requestAnimationFrame(animate);
@@ -629,7 +638,8 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       const t = threeRef.current!;
       t.uniforms.uShapeType.value = SHAPE_MAP[variant] ?? 0;
       t.uniforms.uPixelSize.value = pixelSize * t.renderer.getPixelRatio();
-      t.uniforms.uColor.value.set(color);
+      const safeColor = color || '#B497CF';
+      t.uniforms.uColor.value.set(safeColor);
       t.uniforms.uScale.value = patternScale;
       t.uniforms.uDensity.value = patternDensity;
       t.uniforms.uPixelJitter.value = pixelSizeJitter;
@@ -651,11 +661,10 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
     }
     prevConfigRef.current = cfg;
     return () => {
-      if (threeRef.current && mustReinit) return;
       if (!threeRef.current) return;
       const t = threeRef.current;
       t.resizeObserver?.disconnect();
-      cancelAnimationFrame(t.raf!);
+      if (t.raf) cancelAnimationFrame(t.raf);
       t.quad?.geometry.dispose();
       t.material.dispose();
       t.composer?.dispose();
