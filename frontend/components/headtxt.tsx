@@ -54,6 +54,7 @@ function useMousePositionRef(containerRef: MutableRefObject<HTMLElement | null>)
 
 // Parses '#rrggbb' or 'rgb(r,g,b)' into an [r,g,b] tuple
 function parseColor(color: string): [number, number, number] {
+  if (!color) return [255, 255, 255];
   if (color.startsWith('#')) {
     let hex = color.slice(1);
     if (hex.length === 3) {
