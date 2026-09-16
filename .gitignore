@@ -1,0 +1,14 @@
+chroma_db/
+**/chroma_db/
+data/
+**/data/
+__pycache__/
+*.pyc
+*.py[cod]
+.env
+.env.*
+!.env.example
+tempCodeRunnerFile.py
+.vscode/
+.idea/
+*.log
