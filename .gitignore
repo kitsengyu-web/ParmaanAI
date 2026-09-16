@@ -1,0 +1,95 @@
+# =========================
+# Environment / Secrets
+# =========================
+
+.env
+.env.*
+!.env.example
+
+
+# =========================
+# Python
+# =========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+*.so
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.pytype/
+.coverage
+htmlcov/
+
+
+# =========================
+# Virtual Environments
+# =========================
+
+venv/
+.venv/
+env/
+ENV/
+
+
+# =========================
+# IDE / Editors
+# =========================
+
+.vscode/
+.idea/
+
+*.swp
+*.swo
+
+
+# =========================
+# OS
+# =========================
+
+.DS_Store
+Thumbs.db
+
+
+# =========================
+# ChromaDB & Datasets
+# =========================
+
+chroma_db/
+**/chroma_db/
+data/
+**/data/
+*.jsonl
+*.sqlite3
+*.bin
+*.pickle
+
+
+# =========================
+# Node / Frontend
+# =========================
+
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+build/
+.vercel/
+
+
+# =========================
+# Logs & Temp
+# =========================
+
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+tempCodeRunnerFile.py
+.ipynb_checkpoints/
