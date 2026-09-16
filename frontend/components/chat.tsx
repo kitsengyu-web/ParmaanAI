@@ -143,7 +143,29 @@ const PastedContentCard: React.FC<PastedContentCardProps> = ({ content, onRemove
 };
 
 // 3. Main Input Component
+interface SendResult {
+  ok: boolean;
+  status: number;
+  url: string;
+  data: unknown;
+}
+
 interface ClaudeChatInputProps {
+  /** Base URL the typed text is sent to, e.g. "https://api.example.com/search" or "/api/ask" */
+  endpoint: string;
+  /** Key used in the JSON body. Defaults to "query". */
+  queryParam?: string;
+  /** Extra fields merged into the JSON body, e.g. { sessionId: "abc" }. */
+  extraFields?: Record<string, unknown>;
+  /** Extra query params appended to the URL, if your endpoint needs any. */
+  extraParams?: Record<string, string>;
+  /** Extra request headers, e.g. an Authorization header. */
+  headers?: Record<string, string>;
+  /** Called with the parsed response once the request succeeds. */
+  onResponse?: (result: SendResult) => void;
+  /** Called if the request fails. */
+  onError?: (error: Error) => void;
+  /** Still fires locally with everything the user attached, before the request goes out. */
   onSendMessage?: (data: {
     message: string;
     files: AttachedFile[];
@@ -152,12 +174,23 @@ interface ClaudeChatInputProps {
   }) => void;
 }
 
-export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({ onSendMessage }) => {
+export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({
+  endpoint,
+  queryParam = "query",
+  extraFields,
+  extraParams,
+  headers,
+  onResponse,
+  onError,
+  onSendMessage,
+}) => {
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<AttachedFile[]>([]);
   const [pastedContent, setPastedContent] = useState<PastedContentItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -232,15 +265,68 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({ onSendMessage 
     }
   };
 
-  const handleSend = () => {
-    if (!message.trim() && files.length === 0 && pastedContent.length === 0) return;
-    if (onSendMessage) {
-      onSendMessage({ message, files, pastedContent, isThinkingEnabled });
+  /** Resolves the endpoint and merges any extra query params. */
+  const buildUrl = () => {
+    // Works for absolute URLs and for same-origin paths like "/api/ask".
+    const base = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    const url = new URL(endpoint, base);
+
+    if (extraParams) {
+      Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, v));
     }
-    setMessage("");
-    setFiles([]);
-    setPastedContent([]);
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
+
+    // Keep it relative if the caller passed a relative path.
+    return /^https?:\/\//i.test(endpoint) ? url.toString() : url.pathname + url.search;
+  };
+
+  const handleSend = async () => {
+    const text = message.trim();
+    if (!text && files.length === 0 && pastedContent.length === 0) return;
+    if (isSending) return;
+
+    // Pasted snippets are part of what the user "typed", so append them.
+    const fullText = [text, ...pastedContent.map((p) => p.content)].filter(Boolean).join("\n\n");
+
+    onSendMessage?.({ message: text, files, pastedContent, isThinkingEnabled });
+
+    const url = buildUrl();
+    setIsSending(true);
+    setErrorText(null);
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...headers,
+        },
+        body: JSON.stringify({ ...extraFields, [queryParam]: fullText }),
+      });
+
+      const raw = await res.text();
+      let data: unknown = raw;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        /* response wasn't JSON — hand back the text */
+      }
+
+      if (!res.ok) throw new Error(`Request failed with ${res.status}`);
+
+      onResponse?.({ ok: res.ok, status: res.status, url, data });
+
+      setMessage("");
+      setFiles([]);
+      setPastedContent([]);
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Request failed");
+      setErrorText(`${error.message}. Check the endpoint and try again.`);
+      onError?.(error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -250,7 +336,8 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({ onSendMessage 
     }
   };
 
-  const hasContent = message.trim() || files.length > 0 || pastedContent.length > 0;
+  const hasContent = Boolean(message.trim() || files.length > 0 || pastedContent.length > 0);
+  const canSend = hasContent && !isSending;
 
   return (
     <div
@@ -287,7 +374,8 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({ onSendMessage 
             onPaste={handlePaste}
             onKeyDown={handleKeyDown}
             placeholder="How can I help you today?"
-            className="w-full bg-transparent border-0 outline-none text-white text-[16px] placeholder:text-zinc-500 resize-none py-1 leading-relaxed block font-normal antialiased min-h-[2.5rem]"
+            disabled={isSending}
+            className="w-full bg-transparent border-0 outline-none text-white text-[16px] placeholder:text-zinc-500 resize-none py-1 leading-relaxed block font-normal antialiased min-h-[2.5rem] disabled:opacity-60"
             rows={1}
             autoFocus
           />
@@ -317,13 +405,13 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({ onSendMessage 
           <div className="flex items-center gap-2">
             <button
               onClick={handleSend}
-              disabled={!hasContent}
+              disabled={!canSend}
               className={`inline-flex items-center justify-center h-8 w-8 rounded-xl transition-all ${
-                hasContent ? "bg-white text-black hover:bg-zinc-200" : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                canSend ? "bg-white text-black hover:bg-zinc-200" : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
               }`}
               type="button"
             >
-              <Icons.ArrowUp className="w-4 h-4" />
+              {isSending ? <Icons.Loader2 className="w-4 h-4 animate-spin" /> : <Icons.ArrowUp className="w-4 h-4" />}
             </button>
           </div>
         </div>
@@ -347,7 +435,8 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({ onSendMessage 
         }}
       />
 
-      <div className="text-center mt-3">
+      <div className="text-center mt-3 space-y-1">
+        {errorText && <p className="text-xs text-red-400">{errorText}</p>}
         <p className="text-xs text-zinc-500">AI can make mistakes. Please check important information.</p>
       </div>
     </div>
@@ -357,7 +446,10 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({ onSendMessage 
 export default function ChatPage() {
   return (
     <div className="w-full flex-1 flex flex-col justify-center items-center p-4">
-      <ClaudeChatInput />
+      <ClaudeChatInput
+        endpoint="/api/ask"
+        onResponse={(result) => console.log("Response:", result.data)}
+      />
     </div>
   );
 }
