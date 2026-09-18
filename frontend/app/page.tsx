@@ -9,6 +9,7 @@ import { hasEnvVars } from "@/lib/utils";
 import CardSwap, { Card } from "@/components/cardswap";
 import { Stats2 } from "@/components/stats";
 import { IntegrationsBeam } from "@/components/useflow";
+import { SplineScene } from "@/components/robo";
 
 
 const PramaanLogoIcon = () => (
