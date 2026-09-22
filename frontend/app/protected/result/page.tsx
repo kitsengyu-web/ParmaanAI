@@ -1,23 +1,23 @@
 "use client";
-import LaserFlow from '@/component/laser ';
+import LaserFlow from '@/components/laser';
 import { useRef } from 'react';
 
 // NOTE: You can also adjust the variables in the shader for super detailed customization
 
 // Basic Usage
-<div style={{ height: '500px', position: 'relative', overflow: 'hidden' }}>
-  <LaserFlow />
-</div>
+// <div style={{ height: '500px', position: 'relative', overflow: 'hidden' }}>
+//   <LaserFlow />
+// </div>
 
 // Image Example Interactive Reveal Effect
-function LaserFlowBoxExample() {
-  const revealImgRef = useRef(null);
+export default function LaserFlowBoxExample() {
+  const revealImgRef = useRef<HTMLImageElement>(null);
 
   return (
-    <div 
-      style={{ 
-        height: '800px', 
-        position: 'relative', 
+    <div
+      style={{
+        height: '800px',
+        position: 'relative',
         overflow: 'hidden',
         backgroundColor: '#120F17'
       }}
@@ -42,19 +42,31 @@ function LaserFlowBoxExample() {
       <LaserFlow
         horizontalBeamOffset={0.1}
         verticalBeamOffset={0.0}
-        color="#CF9EFF"
+        color="#808080"
+        horizontalSizing={0.5}
+        verticalSizing={2}
+        wispDensity={1}
+        wispSpeed={15}
+        wispIntensity={5}
+        flowSpeed={0.35}
+        flowStrength={0.25}
+        fogIntensity={0.45}
+        fogScale={0.3}
+        fogFallSpeed={0.6}
+        decay={1.1}
+        falloffStart={1.2}
       />
-      
+
       <div style={{
         position: 'absolute',
         top: '50%',
         left: '50%',
         transform: 'translateX(-50%)',
         width: '86%',
-        height: '60%',
+        height: '85%',
         backgroundColor: '#120F17',
         borderRadius: '20px',
-        border: '2px solid #FF79C6',
+        border: '2px solid #808080',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -83,20 +95,8 @@ function LaserFlowBoxExample() {
           maskImage: 'radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,1) 0px, rgba(255,255,255,0.95) 60px, rgba(255,255,255,0.6) 120px, rgba(255,255,255,0.25) 180px, rgba(255,255,255,0) 240px)',
           WebkitMaskRepeat: 'no-repeat',
           maskRepeat: 'no-repeat'
-        }}
-  horizontalSizing={0.5}
-  verticalSizing={2}
-  wispDensity={1}
-  wispSpeed={15}
-  wispIntensity={5}
-  flowSpeed={0.35}
-  flowStrength={0.25}
-  fogIntensity={0.45}
-  fogScale={0.3}
-  fogFallSpeed={0.6}
-  decay={1.1}
-  falloffStart={1.2}
-/>
+        } as React.CSSProperties}
+      />
     </div>
   );
 }
