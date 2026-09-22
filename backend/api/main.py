@@ -165,28 +165,12 @@ PRAMAAN_RESPONSE_SCHEMA = {
 }
 
 
-def build_retrieved_standard(
-    result: dict[str, Any],
-) -> RetrievedStandard:
+def build_retrieved_standard(result):
     return RetrievedStandard(
-        standard_number=result.get(
-            "standard_number",
-            ""
-        ),
-        standard_name=result.get(
-            "standard_name",
-            ""
-        ),
-        standard_type=result.get(
-            "standard_type"
-        ),
-        department=result.get(
-            "metadata",
-            {}
-        ).get("department"),
-        hybrid_score=result.get(
-            "hybrid_score"
-        ),
+        standard_number=result.get("standard_number", ""),
+        standard_name=result.get("standard_name", ""),
+        standard_type=result.get("standard_type"),
+        department=result.get("metadata", {}).get("department"),
     )
 
 
