@@ -1,3 +1,4 @@
+"use client";
 import LaserFlow from '@/component/laser';
 import { useRef } from 'react';
 
