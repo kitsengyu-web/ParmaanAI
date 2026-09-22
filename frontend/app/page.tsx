@@ -76,64 +76,42 @@ export default async function Home() {
 
       {/* SECTION 3: CardSwap Feature Section */}
       <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          {/* Left: heading + typing subtext */}
-          <div className="text-left max-w-md">
-            <h2 className="text-3xl md:text-4xl font-semibold text-white leading-tight mb-4">
-              Built for accuracy,
-              <br />
-              trusted for certainty
-            </h2>
-            <TextType
-              text={[
-                "Empowering intelligent workflows with Pramaan AI.",
-                "Deep reasoning, clean interactions, and modern design.",
-                "Start building your next conversation today."
-              ]}
-              typingSpeed={45}
-              deletingSpeed={25}
-              pauseDuration={2200}
-              loop={true}
-              startOnVisible={true}
-              className="text-base md:text-lg font-medium text-zinc-400"
-              cursorCharacter="▋"
-              cursorClassName="text-amber-400 font-bold"
-            />
-          </div>
-
-          {/* Right: card stack */}
-          <div className="relative h-[420px] md:h-[480px] w-full flex items-center justify-center md:justify-end overflow-visible">
-            <div className="relative md:mr-[60px] lg:mr-[40px]">
-              <CardSwap
-                width={340}
-                height={220}
-                cardDistance={50}
-                verticalDistance={55}
-                delay={4000}
-                pauseOnHover={true}
-              >
-                <Card customClass="p-6 flex flex-col justify-between">
-                  <h3 className="text-lg font-semibold text-white">Semantic Matching</h3>
-                  <p className="text-sm text-zinc-400">
-                    Finds the right Indian Standard by meaning, not keywords.
-                  </p>
-                </Card>
-                <Card customClass="p-6 flex flex-col justify-between">
-                  <h3 className="text-lg font-semibold text-white">Allied Standards</h3>
-                  <p className="text-sm text-zinc-400">
-                    Surfaces normative, safety, and test-method references automatically.
-                  </p>
-                </Card>
-                <Card customClass="p-6 flex flex-col justify-between">
-                  <h3 className="text-lg font-semibold text-white">Certification Info</h3>
-                  <p className="text-sm text-zinc-400">
-                    Flags BIS, CRS, and Hallmarking requirements up front.
-                  </p>
-                </Card>
-              </CardSwap>
-            </div>
-          </div>
-        </div>
+       {/* Right: card stack */}
+<div className="relative h-[420px] md:h-[480px] w-full flex items-center justify-center md:justify-end overflow-visible">
+  {/* 
+    1. Removed md:mr-[60px] which was pulling it back left.
+    2. Added md:translate-x-8 / lg:translate-x-16 to safely nudge it right.
+  */}
+  <div className="relative md:translate-x-8 lg:translate-x-16">
+    <CardSwap
+      width={340}
+      height={220}
+      cardDistance={50}
+      verticalDistance={55}
+      delay={4000}
+      pauseOnHover={true}
+    >
+      <Card customClass="p-6 flex flex-col justify-between">
+        <h3 className="text-lg font-semibold text-white">Semantic Matching</h3>
+        <p className="text-sm text-zinc-400">
+          Finds the right Indian Standard by meaning, not keywords.
+        </p>
+      </Card>
+      <Card customClass="p-6 flex flex-col justify-between">
+        <h3 className="text-lg font-semibold text-white">Allied Standards</h3>
+        <p className="text-sm text-zinc-400">
+          Surfaces normative, safety, and test-method references automatically.
+        </p>
+      </Card>
+      <Card customClass="p-6 flex flex-col justify-between">
+        <h3 className="text-lg font-semibold text-white">Certification Info</h3>
+        <p className="text-sm text-zinc-400">
+          Flags BIS, CRS, and Hallmarking requirements up front.
+        </p>
+      </Card>
+    </CardSwap>
+  </div>
+</div>
       </section>
 
       {/* SECTION 4: Interactive 3D Robot Showcase */}
