@@ -11,11 +11,12 @@ import { Stats2 } from "@/components/stats";
 import { IntegrationsBeam } from "@/components/useflow";
 import { SplineScene } from "@/components/robo";
 
+
 const PramaanLogoIcon = () => (
   <svg
     viewBox="0 0 200 200"
     className="h-full w-full text-black fill-current"
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://cdn.uploadtourl.com/5d09f7d6_02_mark_white_on_dark.svg"
   >
     <path d="M43.5 138.8L59.3 46.2C60.5 39 67.2 34 74.5 35.2L124.6 43.6C131.8 44.8 136.8 51.5 135.6 58.7L129.8 92.6C128.6 99.8 121.9 104.8 114.7 103.6L86.4 98.9L79.1 141.2C77.9 148.4 71.2 153.4 63.9 152.2L49.5 149.8C42.3 148.6 37.3 141.9 38.5 134.7L43.5 138.8Z" />
   </svg>
@@ -26,8 +27,10 @@ export default async function Home() {
     <main className="w-full bg-black text-white flex flex-col overflow-x-hidden">
       {/* SECTION 1: PixelBlast Hero Section */}
       <section className="relative min-h-screen w-full flex flex-col justify-between items-center overflow-hidden">
+        {/* PixelBlast is scoped solely to this hero section */}
         <PixelBlastBackground />
 
+        {/* Hero Content Layer */}
         <div className="relative z-10 w-full flex flex-col min-h-screen justify-between items-center">
           {/* Navigation Bar */}
           <nav className="w-full flex justify-center border-b border-zinc-800/50 h-16 bg-black/40 backdrop-blur-md">
@@ -56,11 +59,12 @@ export default async function Home() {
             </div>
           </nav>
 
+          {/* Hero Content */}
           <HeroSection />
         </div>
       </section>
 
-      {/* SECTION 2: Integrations Beam */}
+      {/* SECTION 2: Integrations / capabilities hub-and-spoke beam diagram */}
       <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 text-center">
         <h2 className="text-3xl md:text-4xl font-semibold text-white mb-3">
           One platform, every step covered
@@ -71,9 +75,10 @@ export default async function Home() {
         <IntegrationsBeam />
       </section>
 
-      {/* SECTION 3: CardSwap Feature Section */}
+      {/* SECTION 3: CardSwap Feature Section (text left, cards bleeding off right edge) */}
       <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+          {/* Left: heading + typing subtext */}
           <div className="text-left max-w-md">
             <h2 className="text-3xl md:text-4xl font-semibold text-white leading-tight mb-4">
               Built for accuracy,
@@ -97,15 +102,16 @@ export default async function Home() {
             />
           </div>
 
+          {/* Right: card stack, given generous room so nothing clips, nudged toward the edge via flex */}
           <div className="relative h-[420px] md:h-[480px] w-full flex items-center justify-center md:justify-end overflow-visible">
-            <div className="relative md:translate-x-8 lg:translate-x-16">
+            <div className="relative md:mr-[60px] lg:mr-[40px]">
               <CardSwap
-                width={340}
-                height={220}
-                cardDistance={50}
-                verticalDistance={55}
-                delay={4000}
-                pauseOnHover={true}
+      width={340}
+      height={220}
+      cardDistance={50}
+      verticalDistance={55}
+      delay={4000}
+      pauseOnHover={true}
               >
                 <Card customClass="p-6 flex flex-col justify-between">
                   <h3 className="text-lg font-semibold text-white">Semantic Matching</h3>
@@ -131,62 +137,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* SECTION 4: Original Interactive AI Companion (SplineScene Component) */}
-      <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="w-full h-[500px] bg-zinc-950 rounded-2xl border border-zinc-800 relative overflow-hidden shadow-2xl">
-            <div className="pointer-events-none absolute -top-40 left-0 md:left-60 md:-top-20 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-
-            <div className="flex flex-col md:flex-row h-full relative z-10">
-              <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
-                <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-                  Interactive AI Companion
-                </h2>
-                <p className="mt-4 text-zinc-400 max-w-md text-base md:text-lg">
-                  Experience intelligent reasoning in real time. Pramaan AI brings deep context and fluid interaction directly to your workflow.
-                </p>
-              </div>
-
-              <div className="flex-1 relative h-full min-h-[300px]">
-                <SplineScene
-                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                  className="w-full h-full"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 5: Additional 3D Diagram Section (Embedded Iframe) */}
-      <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="w-full h-[500px] bg-zinc-950 rounded-2xl border border-zinc-800 relative overflow-hidden shadow-2xl">
-            <div className="pointer-events-none absolute -top-40 right-0 md:right-60 md:-top-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-
-            <div className="flex flex-col md:flex-row h-full relative z-10">
-              <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
-                <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-                  System Architecture Visualizer
-                </h2>
-                <p className="mt-4 text-zinc-400 max-w-md text-base md:text-lg">
-                  Explore multi-layer standard mappings and automated compliance flows through a real-time spatial diagram.
-                </p>
-              </div>
-
-              <div className="flex-1 relative h-full min-h-[300px] w-full">
-                <iframe
-                  src="https://my.spline.design/3ddiagram-VcOnr5i8Dz2Y5LytmThorA64/"
-                  className="w-full h-full border-0"
-                  title="System Architecture Diagram"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 6: Footer */}
+      {/* SECTION 4: Footer */}
       <footer className="relative z-20 w-full py-12 px-6 border-t border-zinc-800/40 bg-black text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center gap-3">
           <Stats2 />
