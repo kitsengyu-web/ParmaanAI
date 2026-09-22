@@ -2029,18 +2029,17 @@ def search_bis(
     # ========================================================
 
     for result in ranked_results:
+    relationships = result.get("relationships", {})
+    flat_relationships = {
+        field: data["values"]
+        for field, data in relationships.items()
+        if isinstance(data, dict) and isinstance(data.get("values"), list)
+    }
 
-        relationships = result.get(
-            "relationships",
-            {}
-        )
-
-        result[
-            "filtered_relationships"
-        ] = filter_all_relationships(
-            result,
-            relationships
-        )
+    result["filtered_relationships"] = filter_all_relationships(
+        query,               
+        flat_relationships,
+    )
 
     # ========================================================
     # NORMALIZE FILTERED RELATIONSHIPS
