@@ -191,7 +191,9 @@ export default async function Home() {
 <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 px-6 py-24">
   <div className="relative mx-auto max-w-5xl">
     <div className="relative h-[420px] md:h-[560px] w-full">
+      <ErrorBoundary fallback={<div className="h-full w-full bg-zinc-950 rounded-2xl" />}>
       <AiBrain className="h-full w-full" />
+        </ErrorBoundary>
     </div>
 
     <div className="relative md:absolute md:bottom-8 md:left-0 md:max-w-md rounded-2xl border border-zinc-800 bg-black/70 backdrop-blur-md p-6 mt-6 md:mt-0">
