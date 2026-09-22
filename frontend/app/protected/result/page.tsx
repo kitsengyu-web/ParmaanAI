@@ -1,5 +1,5 @@
 "use client";
-import LaserFlow from '@/component/laser';
+import LaserFlow from '@/component/laser ';
 import { useRef } from 'react';
 
 // NOTE: You can also adjust the variables in the shader for super detailed customization
