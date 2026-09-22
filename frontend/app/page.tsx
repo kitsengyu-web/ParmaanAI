@@ -10,6 +10,7 @@ import CardSwap, { Card } from "@/components/cardswap";
 import { Stats2 } from "@/components/stats";
 import { IntegrationsBeam } from "@/components/useflow";
 import { SplineScene } from "@/components/robo";
+import { AiBrain } from "@/components/aibrain";
 
 const PramaanLogoIcon = () => (
   <svg
@@ -184,7 +185,27 @@ export default async function Home() {
             </div>
           </div>
         </div>
+       
       </section>
+      {/* SECTION 1.5: Reasoning core — Spline AI brain */}
+<section className="relative z-20 w-full bg-black border-t border-zinc-800/40 px-6 py-24">
+  <div className="relative mx-auto max-w-5xl">
+    <div className="relative h-[420px] md:h-[560px] w-full">
+      <AiBrain className="h-full w-full" />
+    </div>
+
+    <div className="relative md:absolute md:bottom-8 md:left-0 md:max-w-md rounded-2xl border border-zinc-800 bg-black/70 backdrop-blur-md p-6 mt-6 md:mt-0">
+      <h2 className="text-2xl font-semibold text-white mb-2">
+        Grounded reasoning, not guesswork
+      </h2>
+      <p className="text-sm text-zinc-400 leading-relaxed">
+        Every recommendation traces back to a retrieved BIS record. Pramaan
+        reranks and reasons over real standards data — it never invents an
+        IS number or a certification requirement.
+      </p>
+    </div>
+  </div>
+</section>
 
       {/* SECTION 6: Footer */}
       <footer className="relative z-20 w-full py-12 px-6 border-t border-zinc-800/40 bg-black text-center">
