@@ -21,7 +21,7 @@ export function AiBrain({ className }: AiBrainProps) {
   return (
     <Spline
       // Replace with your own exported scene URL (see Export → Code → React in Spline)
-      scene="https://app.spline.design/community/file/fb5c9572-898e-4c53-a7ea-fab22311ea46"
+      scene="https://my.spline.design/particleaibrain-6SamHGaeCHACI1EsMSUNiQMk/"
       className={className}
     />
   );
