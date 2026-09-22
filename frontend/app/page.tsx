@@ -11,7 +11,6 @@ import { Stats2 } from "@/components/stats";
 import { IntegrationsBeam } from "@/components/useflow";
 import { SplineScene } from "@/components/robo";
 
-
 const PramaanLogoIcon = () => (
   <svg
     viewBox="0 0 200 200"
@@ -75,7 +74,7 @@ export default async function Home() {
         <IntegrationsBeam />
       </section>
 
-      {/* SECTION 3: CardSwap Feature Section (text left, cards bleeding off right edge) */}
+      {/* SECTION 3: CardSwap Feature Section */}
       <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           {/* Left: heading + typing subtext */}
@@ -102,16 +101,16 @@ export default async function Home() {
             />
           </div>
 
-          {/* Right: card stack, given generous room so nothing clips, nudged toward the edge via flex */}
+          {/* Right: card stack */}
           <div className="relative h-[420px] md:h-[480px] w-full flex items-center justify-center md:justify-end overflow-visible">
             <div className="relative md:mr-[60px] lg:mr-[40px]">
               <CardSwap
-      width={340}
-      height={220}
-      cardDistance={50}
-      verticalDistance={55}
-      delay={4000}
-      pauseOnHover={true}
+                width={340}
+                height={220}
+                cardDistance={50}
+                verticalDistance={55}
+                delay={4000}
+                pauseOnHover={true}
               >
                 <Card customClass="p-6 flex flex-col justify-between">
                   <h3 className="text-lg font-semibold text-white">Semantic Matching</h3>
@@ -137,7 +136,37 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* SECTION 4: Footer */}
+      {/* SECTION 4: Interactive 3D Robot Showcase */}
+      <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="w-full h-[500px] bg-zinc-950 rounded-2xl border border-zinc-800 relative overflow-hidden shadow-2xl">
+            {/* Ambient Top-Left Light Glow Effect */}
+            <div className="pointer-events-none absolute -top-40 left-0 md:left-60 md:-top-20 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+
+            <div className="flex flex-col md:flex-row h-full relative z-10">
+              {/* Left Content */}
+              <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
+                <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+                  Interactive AI Companion
+                </h2>
+                <p className="mt-4 text-zinc-400 max-w-md text-base md:text-lg">
+                  Experience intelligent reasoning in real time. Pramaan AI brings deep context and fluid interaction directly to your workflow.
+                </p>
+              </div>
+
+              {/* Right 3D Scene */}
+              <div className="flex-1 relative h-full min-h-[300px]">
+                <SplineScene
+                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 5: Footer */}
       <footer className="relative z-20 w-full py-12 px-6 border-t border-zinc-800/40 bg-black text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center gap-3">
           <Stats2 />
