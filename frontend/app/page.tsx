@@ -11,7 +11,7 @@ import { Stats2 } from "@/components/stats";
 import { IntegrationsBeam } from "@/components/useflow";
 import { SplineScene } from "@/components/robo";
 import { AiBrain } from "@/components/aibrain";
-
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const PramaanLogoIcon = () => (
   <svg
