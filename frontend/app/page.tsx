@@ -1,11 +1,8 @@
-import { Suspense } from "react";
 import Link from "next/link";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
+import { LandingAuthButtons } from "@/components/landing-auth-buttons";
 import { PixelBlastBackground } from "@/components/pixel-blast-wrapper";
 import { HeroSection } from "@/components/hold";
 import TextType from "@/components/testtype";
-import { hasEnvVars } from "@/lib/utils";
 import CardSwap, { Card } from "@/components/cardswap";
 import { Stats2 } from "@/components/stats";
 import { IntegrationsBeam } from "@/components/useflow";
@@ -47,13 +44,7 @@ export default async function Home() {
               </Link>
 
               <div className="flex items-center">
-                {!hasEnvVars ? (
-                  <EnvVarWarning />
-                ) : (
-                  <Suspense>
-                    <AuthButton />
-                  </Suspense>
-                )}
+                <LandingAuthButtons />
               </div>
             </div>
           </nav>
@@ -86,7 +77,7 @@ export default async function Home() {
               text={[
                 "Empowering intelligent workflows with Pramaan AI.",
                 "Deep reasoning, clean interactions, and modern design.",
-                "Start building your next conversation today."
+                "Start building your next conversation today.",
               ]}
               typingSpeed={45}
               deletingSpeed={25}
@@ -133,7 +124,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* SECTION 4: Original Interactive AI Companion (SplineScene Component) */}
+      {/* SECTION 4: Interactive AI Companion (SplineScene) */}
       <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="w-full h-[500px] bg-zinc-950 rounded-2xl border border-zinc-800 relative overflow-hidden shadow-2xl">
@@ -160,7 +151,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* SECTION 5: Additional 3D Diagram Section (Embedded Iframe) */}
+      {/* SECTION 5: 3D Diagram Section (Embedded Iframe) */}
       <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="w-full h-[500px] bg-zinc-950 rounded-2xl border border-zinc-800 relative overflow-hidden shadow-2xl">
@@ -186,38 +177,36 @@ export default async function Home() {
             </div>
           </div>
         </div>
-       
       </section>
-      {/* SECTION 1.5: Reasoning core — Spline AI brain */}
-<section className="relative z-20 w-full bg-black border-t border-zinc-800/40 px-6 py-24">
-  <div className="relative mx-auto max-w-5xl">
-    <div className="relative h-[420px] md:h-[560px] w-full">
-      <ErrorBoundary fallback={<div className="h-full w-full bg-zinc-950 rounded-2xl" />}>
-      <AiBrain className="h-full w-full" />
-        </ErrorBoundary>
-    </div>
 
-   <div className="relative md:absolute md:bottom-8 md:right-0 md:max-w-md rounded-2xl border border-zinc-800 bg-black/70 backdrop-blur-md p-6 mt-6 md:mt-0">
-  <h2 className="text-2xl font-semibold text-white mb-2">
-    Grounded reasoning, not guesswork
-  </h2>
-  <p className="text-sm text-zinc-400 leading-relaxed">
-    Every recommendation traces back to a retrieved BIS record. Pramaan
-    reranks and reasons over real standards data — it never invents an
-    IS number or a certification requirement.
-  </p>
-</div>
-  </div>
-</section>
+      {/* SECTION 6: Reasoning core — Spline AI brain */}
+      <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 px-6 py-24">
+        <div className="relative mx-auto max-w-5xl">
+          <div className="relative h-[420px] md:h-[560px] w-full">
+            <ErrorBoundary fallback={<div className="h-full w-full bg-zinc-950 rounded-2xl" />}>
+              <AiBrain className="h-full w-full" />
+            </ErrorBoundary>
+          </div>
 
-      {/* SECTION 6: Footer */}
+          <div className="relative md:absolute md:bottom-8 md:right-0 md:max-w-md rounded-2xl border border-zinc-800 bg-black/70 backdrop-blur-md p-6 mt-6 md:mt-0">
+            <h2 className="text-2xl font-semibold text-white mb-2">
+              Grounded reasoning, not guesswork
+            </h2>
+            <p className="text-sm text-zinc-400 leading-relaxed">
+              Every recommendation traces back to a retrieved BIS record. Pramaan
+              reranks and reasons over real standards data — it never invents an
+              IS number or a certification requirement.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 7: Footer */}
       <footer className="relative z-20 w-full py-12 px-6 border-t border-zinc-800/40 bg-black text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center gap-3">
           <Stats2 />
 
-          <p className="text-xs text-zinc-600 mt-2">
-            © 2026 Pramaan AI
-          </p>
+          <p className="text-xs text-zinc-600 mt-2">© 2026 Pramaan AI</p>
         </div>
       </footer>
     </main>
