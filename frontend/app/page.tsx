@@ -197,16 +197,16 @@ export default async function Home() {
         </ErrorBoundary>
     </div>
 
-    <div className="relative md:absolute md:bottom-8 md:left-0 md:max-w-md rounded-2xl border border-zinc-800 bg-black/70 backdrop-blur-md p-6 mt-6 md:mt-0">
-      <h2 className="text-2xl font-semibold text-white mb-2">
-        Grounded reasoning, not guesswork
-      </h2>
-      <p className="text-sm text-zinc-400 leading-relaxed">
-        Every recommendation traces back to a retrieved BIS record. Pramaan
-        reranks and reasons over real standards data — it never invents an
-        IS number or a certification requirement.
-      </p>
-    </div>
+   <div className="relative md:absolute md:bottom-8 md:right-0 md:max-w-md rounded-2xl border border-zinc-800 bg-black/70 backdrop-blur-md p-6 mt-6 md:mt-0">
+  <h2 className="text-2xl font-semibold text-white mb-2">
+    Grounded reasoning, not guesswork
+  </h2>
+  <p className="text-sm text-zinc-400 leading-relaxed">
+    Every recommendation traces back to a retrieved BIS record. Pramaan
+    reranks and reasons over real standards data — it never invents an
+    IS number or a certification requirement.
+  </p>
+</div>
   </div>
 </section>
 
