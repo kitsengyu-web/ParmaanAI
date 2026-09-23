@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LandingAuthButtons } from "@/components/landing-auth-buttons";
+import { Button } from "@/components/ui/button";
 import { PixelBlastBackground } from "@/components/pixel-blast-wrapper";
 import { HeroSection } from "@/components/hold";
 import TextType from "@/components/testtype";
@@ -44,7 +44,22 @@ export default async function Home() {
               </Link>
 
               <div className="flex items-center">
-                <LandingAuthButtons />
+                <div className="flex gap-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    className="bg-zinc-900 text-white border border-zinc-700 hover:bg-zinc-800 hover:text-white"
+                  >
+                    <Link href="/auth/login">Sign in</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="sm"
+                    className="bg-black text-white border border-zinc-600 hover:bg-zinc-900 hover:text-white"
+                  >
+                    <Link href="/auth/sign-up">Sign up</Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </nav>
