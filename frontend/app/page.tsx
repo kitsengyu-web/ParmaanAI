@@ -10,6 +10,7 @@ import { SplineScene } from "@/components/robo";
 import { AiBrain } from "@/components/aibrain";
 import { ErrorBoundary } from "@/components/error-boundary";
 import Comparison03 from "@/components/comparison";
+import AnimatedWaveFooter from "@/components/footer";
 
 const PramaanLogoIcon = () => (
   <svg
@@ -229,14 +230,21 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* SECTION 8: Footer */}
-      <footer className="relative z-20 w-full py-12 px-6 border-t border-zinc-800/40 bg-black text-center">
-        <div className="max-w-4xl mx-auto flex flex-col items-center justify-center gap-3">
+      {/* SECTION 8: Stats (moved out of the old footer so it isn't lost) */}
+      <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 px-6">
+        <div className="max-w-4xl mx-auto">
           <Stats2 />
-
-          <p className="text-xs text-zinc-600 mt-2">© 2026 Pramaan AI</p>
         </div>
-      </footer>
+      </section>
+
+      {/* SECTION 9: Animated wave footer
+          Same `dark` trick as Section 7: AnimatedWaveFooter is built on
+          shadcn tokens (bg-background, text-primary, text-muted-foreground),
+          so wrapping it in `dark` keeps it black-themed regardless of the
+          visitor's system theme. overflow-hidden clips the wave graphic. */}
+      <div className="dark relative z-20 w-full overflow-hidden border-t border-zinc-800/40 bg-background text-foreground">
+        <AnimatedWaveFooter />
+      </div>
     </main>
   );
 }
