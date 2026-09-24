@@ -9,6 +9,7 @@ import { IntegrationsBeam } from "@/components/useflow";
 import { SplineScene } from "@/components/robo";
 import { AiBrain } from "@/components/aibrain";
 import { ErrorBoundary } from "@/components/error-boundary";
+import Comparison03 from "@/components/comparison";
 
 const PramaanLogoIcon = () => (
   <svg
@@ -216,7 +217,19 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* SECTION 7: Footer */}
+      {/* SECTION 7: Before / After Comparison
+          The wrapper's `dark` class forces the shadcn dark tokens
+          (bg-background, text-muted-foreground, border-border, bg-card)
+          so this section matches the black landing page even when the
+          visitor's system theme is light. The flex wrapper centers the
+          component's `container` and adds side padding. */}
+      <div className="dark relative z-20 w-full border-t border-zinc-800/40 bg-background text-foreground">
+        <div className="flex w-full justify-center px-6 md:px-12">
+          <Comparison03 />
+        </div>
+      </div>
+
+      {/* SECTION 8: Footer */}
       <footer className="relative z-20 w-full py-12 px-6 border-t border-zinc-800/40 bg-black text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center gap-3">
           <Stats2 />
