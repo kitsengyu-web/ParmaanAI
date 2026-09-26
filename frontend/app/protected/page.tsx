@@ -78,7 +78,7 @@ export default function ProtectedChatPage() {
     // submit-then-navigate flow (e.g. await an API call, then push).
     sessionStorage.setItem("chat:lastMessage", data.message);
 
-    router.push("/protected/result");
+    router.push("/protected/aichat");
   };
 
   if (loading) {
