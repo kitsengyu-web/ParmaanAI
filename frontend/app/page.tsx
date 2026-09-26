@@ -175,23 +175,25 @@ export default async function Home() {
             <div className="pointer-events-none absolute -top-40 right-0 md:right-60 md:-top-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
 
             <div className="flex flex-col md:flex-row h-full relative z-10">
-              <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
-                <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-                  System Architecture Visualizer
-                </h2>
-                <p className="mt-4 text-zinc-400 max-w-md text-base md:text-lg">
-                  Explore multi-layer standard mappings and automated compliance flows through a real-time spatial diagram.
-                </p>
-              </div>
+  <div className="w-full md:w-[38%] md:shrink-0 p-8 md:p-12 flex flex-col justify-center">
+    <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+      System Architecture Visualizer
+    </h2>
+    <p className="mt-4 text-zinc-400 max-w-md text-base md:text-lg">
+      Explore multi-layer standard mappings and automated compliance flows through a real-time spatial diagram.
+    </p>
+  </div>
 
-              <div className="flex-1 relative h-full min-h-[300px] w-full">
-                <iframe
-                  src="https://my.spline.design/3ddiagram-VcOnr5i8Dz2Y5LytmThorA64/"
-                  className="w-full h-full border-0"
-                  title="System Architecture Diagram"
-                />
-              </div>
-            </div>
+  <div className="w-full md:w-[62%] relative h-full min-h-[300px]">
+    <iframe
+      src="https://my.spline.design/3ddiagram-VcOnr5i8Dz2Y5LytmThorA64/"
+      className="w-full h-full border-0"
+      title="System Architecture Diagram"
+    />
+    {/* Solid cover over Spline's "Built with Spline" watermark (bottom-right of the embed) */}
+    <div className="absolute bottom-3 right-3 z-20 h-10 w-40 rounded-md bg-black" />
+  </div>
+</div>
           </div>
         </div>
       </section>
