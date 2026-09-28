@@ -306,7 +306,18 @@ const toggleScope = (s: string) =>
     // Pasted snippets are part of what the user "typed", so append them.
     const fullText = [text, ...pastedContent.map((p) => p.content)].filter(Boolean).join("\n\n");
 
-    onSendMessage?.({ message: text, files, pastedContent, isThinkingEnabled });
+   onSendMessage?.({
+  message: text,
+  files,
+  pastedContent,
+  isThinkingEnabled,
+  useProduct,
+  productName,
+  useDepartment,
+  department,
+  useScope,
+  scopes,
+});
 
     const url = buildUrl();
     setIsSending(true);
