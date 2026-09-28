@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Plus, ChevronDown, ArrowUp, X, FileText, Loader2, Check, Archive } from "lucide-react";
-
+const SCOPE_OPTIONS = ["direct", "specialized", "supporting", "testing", "related"] as const;
 /* --- ICONS --- */
 export const Icons = {
   Logo: (props: React.SVGProps<SVGSVGElement>) => (
