@@ -436,10 +436,87 @@ const toggleScope = (s: string) =>
       </div>
 
       {isDragging && (
-        <div className="absolute inset-0 bg-zinc-900/90 border-2 border-dashed border-zinc-500 rounded-2xl z-50 flex flex-col items-center justify-center backdrop-blur-sm pointer-events-none">
-          <Icons.Archive className="w-10 h-10 text-zinc-300 mb-2 animate-bounce" />
-          <p className="text-zinc-200 font-medium">Drop files to upload</p>
-        </div>
+        <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-3 px-2 text-sm text-zinc-300">
+  {/* 1. Product name */}
+  <div className="flex items-center gap-2">
+    <label className="flex cursor-pointer select-none items-center gap-2">
+      <input
+        type="checkbox"
+        checked={useProduct}
+        disabled={isSending}
+        onChange={(e) => setUseProduct(e.target.checked)}
+        className="h-4 w-4 accent-white"
+      />
+      Product name
+    </label>
+    {useProduct && (
+      <input
+        value={productName}
+        onChange={(e) => setProductName(e.target.value)}
+        placeholder="e.g. distribution transformer"
+        disabled={isSending}
+        className="h-7 w-48 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-xs text-white outline-none placeholder:text-zinc-500 focus:border-zinc-500"
+      />
+    )}
+  </div>
+
+  {/* 2. Department */}
+  <div className="flex items-center gap-2">
+    <label className="flex cursor-pointer select-none items-center gap-2">
+      <input
+        type="checkbox"
+        checked={useDepartment}
+        disabled={isSending}
+        onChange={(e) => setUseDepartment(e.target.checked)}
+        className="h-4 w-4 accent-white"
+      />
+      Department
+    </label>
+    {useDepartment && (
+      <input
+        value={department}
+        onChange={(e) => setDepartment(e.target.value)}
+        placeholder="e.g. Electrotechnical"
+        disabled={isSending}
+        className="h-7 w-44 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-xs text-white outline-none placeholder:text-zinc-500 focus:border-zinc-500"
+      />
+    )}
+  </div>
+
+  {/* 3. Scope */}
+  <div className="flex flex-wrap items-center gap-2">
+    <label className="flex cursor-pointer select-none items-center gap-2">
+      <input
+        type="checkbox"
+        checked={useScope}
+        disabled={isSending}
+        onChange={(e) => setUseScope(e.target.checked)}
+        className="h-4 w-4 accent-white"
+      />
+      Scope
+    </label>
+    {useScope &&
+      SCOPE_OPTIONS.map((s) => (
+        <label
+          key={s}
+          className={`flex cursor-pointer select-none items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs capitalize transition-colors ${
+            scopes.includes(s)
+              ? "border-white bg-white text-black"
+              : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={scopes.includes(s)}
+            disabled={isSending}
+            onChange={() => toggleScope(s)}
+            className="hidden"
+          />
+          {s}
+        </label>
+      ))}
+  </div>
+</div>
       )}
 
       <input
