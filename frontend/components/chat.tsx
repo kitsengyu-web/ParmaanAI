@@ -195,6 +195,15 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({
   const [isThinkingEnabled, setIsThinkingEnabled] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [useProduct, setUseProduct] = useState(false);
+  const [productName, setProductName] = useState("");
+  const [useDepartment, setUseDepartment] = useState(false);
+  const [department, setDepartment] = useState("");
+  const [useScope, setUseScope] = useState(false);
+  const [scopes, setScopes] = useState<string[]>(["direct"]);
+
+const toggleScope = (s: string) =>
+  setScopes((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
