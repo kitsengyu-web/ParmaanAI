@@ -171,11 +171,17 @@ interface ClaudeChatInputProps {
   onError?: (error: Error) => void;
   /** Still fires locally with everything the user attached, before the request goes out. */
   onSendMessage?: (data: {
-    message: string;
-    files: AttachedFile[];
-    pastedContent: PastedContentItem[];
-    isThinkingEnabled: boolean;
-  }) => void;
+  message: string;
+  files: AttachedFile[];
+  pastedContent: PastedContentItem[];
+  isThinkingEnabled: boolean;
+  useProduct: boolean;
+  productName: string;
+  useDepartment: boolean;
+  department: string;
+  useScope: boolean;
+  scopes: string[];
+}) => void;
 }
 
 export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({
