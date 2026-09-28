@@ -314,7 +314,7 @@ const toggleScope = (s: string) =>
           Accept: "application/json",
           ...headers,
         },
-        body: body: JSON.stringify({
+        body: JSON.stringify({
         ...extraFields,
         [queryParam]: fullText,
         ...(useProduct && productName.trim() ? { product_name: productName.trim() } : {}),
