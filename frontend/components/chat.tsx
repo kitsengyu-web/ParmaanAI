@@ -320,7 +320,7 @@ const toggleScope = (s: string) =>
         ...(useProduct && productName.trim() ? { product_name: productName.trim() } : {}),
         ...(useDepartment && department.trim() ? { department: department.trim() } : {}),
         ...(useScope && scopes.length ? { scope: scopes } : {}),
-        });
+        }),
 
       const raw = await res.text();
       let data: unknown = raw;
