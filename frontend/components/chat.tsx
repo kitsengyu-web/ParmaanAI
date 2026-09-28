@@ -314,8 +314,13 @@ const toggleScope = (s: string) =>
           Accept: "application/json",
           ...headers,
         },
-        body: JSON.stringify({ ...extraFields, [queryParam]: fullText }),
-      });
+        body: body: JSON.stringify({
+        ...extraFields,
+        [queryParam]: fullText,
+        ...(useProduct && productName.trim() ? { product_name: productName.trim() } : {}),
+        ...(useDepartment && department.trim() ? { department: department.trim() } : {}),
+        ...(useScope && scopes.length ? { scope: scopes } : {}),
+        });
 
       const raw = await res.text();
       let data: unknown = raw;
