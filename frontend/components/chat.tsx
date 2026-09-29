@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
+
 import {
   Plus,
   ChevronDown,
@@ -12,6 +18,8 @@ import {
   Archive,
 } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+
 const SCOPE_OPTIONS = [
   "direct",
   "specialized",
@@ -20,7 +28,9 @@ const SCOPE_OPTIONS = [
   "related",
 ] as const;
 
-/* --- ICONS --- */
+/* =========================================================
+   ICONS
+========================================================= */
 
 export const Icons = {
   Logo: (props: React.SVGProps<SVGSVGElement>) => (
@@ -63,9 +73,7 @@ export const Icons = {
 
   Plus: Plus,
 
-  Thinking: (
-    props: React.SVGProps<SVGSVGElement>
-  ) => (
+  Thinking: (props: React.SVGProps<SVGSVGElement>) => (
     <svg
       width="20"
       height="20"
@@ -74,7 +82,7 @@ export const Icons = {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <path d="M10.3857 2.50977C14.3486 2.71054 17.5 5.98724 17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 9.72386 2.72386 9.5 3 9.5C3.27614 9.5 3.5 9.72386 3.5 10C3.5 13.5899 6.41015 16.5 10 16.5C13.5899 16.5 16.5 13.5899 16.5 10C16.5 6.5225 13.7691 3.68312 10.335 3.50879L10 3.5L9.89941 3.49023C9.67145 3.44371 9.5 3.24171 9.5 3C9.5 2.72386 9.72386 2.5 10 2.5L10.3857 2.50977ZM10 5.5C10.2761 5.5 10.5 5.72386 10.5 6V9.69043L13.2236 11.0527C13.4706 11.1762 13.5708 11.4766 13.4473 11.7236C13.3392 11.9397 13.0957 12.0435 12.8711 11.9834L12.7764 11.9473L9.77637 10.4473C9.60698 10.3626 9.5 10.1894 9.5 10V6C9.5 5.72386 9.72386 5.5 10 5.5ZM3.66211 6.94141C4.0273 6.94159 4.32303 7.23735 4.32324 7.60254C4.32324 7.96791 4.02743 8.26446 3.66211 8.26465C3.29663 8.26465 3 7.96802 3 7.60254C3.00021 7.23723 3.29676 6.94141 3.66211 6.94141ZM4.95605 4.29395C5.32146 4.29404 5.61719 4.59063 5.61719 4.95605C5.6171 5.3214 5.3214 5.61709 4.95605 5.61719C4.59063 5.61719 4.29403 5.32146 4.29395 4.95605C4.29395 4.59057 4.59057 4.29395 4.95605 4.29395ZM7.60254 3C7.96802 3 8.26465 3.29663 8.26465 3.66211C8.26446 4.02743 7.96791 4.32324 7.60254 4.32324C7.23736 4.32302 6.94159 4.0273 6.94141 3.66211C6.94141 3.29676 7.23724 3.00022 7.60254 3Z" />
+      <path d="M10.3857 2.50977C14.3486 2.71054 17.5 5.98724 17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 9.72386 2.72386 9.5 3 9.5C3.27614 9.5 3.5 9.72386 3.5 10C3.5 13.5899 6.41015 16.5 10 16.5C13.5899 16.5 16.5 13.5899 16.5 10C16.5 6.5225 13.7691 3.68312 10.335 3.50879L10 3.5L9.89941 3.49023C9.67145 3.44371 9.5 3.24171 9.5 3C9.5 2.72386 9.72386 2.5 10 2.5L10.3857 2.50977ZM10 5.5C10.2761 5.5 10.5 5.72386 10.5 6V9.69043L13.2236 11.0527C13.4706 11.1762 13.5708 11.4766 13.4473 11.7236C13.3392 11.9397 13.0957 12.0435 12.8711 11.9834L12.7764 11.9473L9.77637 10.4473C9.60698 10.3626 9.5 10.1894 9.5 10V6C9.5 5.72386 9.72386 5.5 10 5.5ZM3.66211 6.94141C4.0273 6.94159 4.32303 7.23735 4.32324 7.60254C4.32324 7.96791 4.02743 8.26446 3.66211 8.26465C3.29663 8.26465 3 7.96802 3 7.60254C3.00021 7.23723 3.29676 6.94141 3.66211 6.94141ZM4.95605 4.29395C5.32146 4.29404 5.61719 4.59063 5.61719 4.95605C5.6171 5.3214 5.3214 5.61709 4.95605 5.61719C4.59063 5.61719 4.29395 5.32146 4.29395 4.95605C4.29395 4.59057 4.59057 4.29395 4.95605 4.29395ZM7.60254 3C7.96802 3 8.26465 3.29663 8.26465 3.66211C8.26446 4.02743 7.96791 4.32324 7.60254 4.32324C7.23736 4.32302 6.94159 4.0273 6.94141 3.66211C6.94141 3.29676 7.23724 3.00022 7.60254 3Z" />
     </svg>
   ),
 
@@ -87,7 +95,10 @@ export const Icons = {
   Archive: Archive,
 };
 
-/* --- UTILS --- */
+
+/* =========================================================
+   UTILS
+========================================================= */
 
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return "0 Bytes";
@@ -114,34 +125,10 @@ const formatFileSize = (bytes: number) => {
   );
 };
 
-/*
- * The backend only accepts JSON ({ query, ... }), so files are not
- * uploaded. Text-based files are read in the browser and their contents
- * are appended to the query string.
- */
-const MAX_FILE_CHARS = 4000;
 
-const TEXT_FILE_EXT =
-  /\.(txt|md|csv|json|log|xml|html?|ya?ml)$/i;
-
-const readFileText = async (
-  file: File
-): Promise<string | null> => {
-  const isText =
-    file.type.startsWith("text/") ||
-    file.type === "application/json" ||
-    TEXT_FILE_EXT.test(file.name);
-
-  if (!isText) return null;
-
-  const text = await file.text();
-
-  return text.length > MAX_FILE_CHARS
-    ? text.slice(0, MAX_FILE_CHARS)
-    : text;
-};
-
-/* --- TYPES --- */
+/* =========================================================
+   TYPES
+========================================================= */
 
 interface AttachedFile {
   id: string;
@@ -158,7 +145,50 @@ interface PastedContentItem {
   timestamp: Date;
 }
 
-/* --- FILE PREVIEW CARD --- */
+interface SendResult {
+  ok: boolean;
+  status: number;
+  url: string;
+  data: unknown;
+}
+
+interface ClaudeChatInputProps {
+  endpoint?: string;
+
+  queryParam?: string;
+
+  extraFields?: Record<string, unknown>;
+
+  extraParams?: Record<string, string>;
+
+  headers?: Record<string, string>;
+
+  onResponse?: (
+    result: SendResult
+  ) => void;
+
+  onError?: (
+    error: Error
+  ) => void;
+
+  onSendMessage?: (data: {
+    message: string;
+    files: AttachedFile[];
+    pastedContent: PastedContentItem[];
+    isThinkingEnabled: boolean;
+    useProduct: boolean;
+    productName: string;
+    useDepartment: boolean;
+    department: string;
+    useScope: boolean;
+    scopes: string[];
+  }) => void;
+}
+
+
+/* =========================================================
+   FILE PREVIEW CARD
+========================================================= */
 
 interface FilePreviewCardProps {
   file: AttachedFile;
@@ -167,15 +197,20 @@ interface FilePreviewCardProps {
 
 const FilePreviewCard: React.FC<
   FilePreviewCardProps
-> = ({ file, onRemove }) => {
+> = ({
+  file,
+  onRemove,
+}) => {
   const isImage =
     file.type.startsWith("image/") &&
     file.preview;
 
   return (
     <div className="relative group flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-800 transition-all hover:border-zinc-500">
+
       {isImage ? (
         <div className="w-full h-full relative">
+
           <img
             src={file.preview!}
             alt={file.file.name}
@@ -183,10 +218,13 @@ const FilePreviewCard: React.FC<
           />
 
           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+
         </div>
       ) : (
         <div className="w-full h-full p-3 flex flex-col justify-between">
+
           <div className="flex items-center gap-2">
+
             <div className="p-1.5 bg-zinc-700 rounded">
               <Icons.FileText className="w-4 h-4 text-zinc-300" />
             </div>
@@ -194,9 +232,11 @@ const FilePreviewCard: React.FC<
             <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider truncate">
               {file.file.name.split(".").pop()}
             </span>
+
           </div>
 
           <div className="space-y-0.5">
+
             <p
               className="text-xs font-medium text-zinc-200 truncate"
               title={file.file.name}
@@ -207,13 +247,16 @@ const FilePreviewCard: React.FC<
             <p className="text-[10px] text-zinc-400">
               {formatFileSize(file.file.size)}
             </p>
+
           </div>
+
         </div>
       )}
 
       <button
         onClick={() => onRemove(file.id)}
         className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-black/70 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+        type="button"
       >
         <Icons.X className="w-3 h-3" />
       </button>
@@ -223,11 +266,15 @@ const FilePreviewCard: React.FC<
           <Icons.Loader2 className="w-5 h-5 text-white animate-spin" />
         </div>
       )}
+
     </div>
   );
 };
 
-/* --- PASTED CONTENT CARD --- */
+
+/* =========================================================
+   PASTED CONTENT CARD
+========================================================= */
 
 interface PastedContentCardProps {
   content: PastedContentItem;
@@ -236,59 +283,65 @@ interface PastedContentCardProps {
 
 const PastedContentCard: React.FC<
   PastedContentCardProps
-> = ({ content, onRemove }) => {
+> = ({
+  content,
+  onRemove,
+}) => {
   return (
     <div className="relative group flex-shrink-0 w-28 h-28 rounded-2xl overflow-hidden border border-zinc-700 bg-zinc-800 p-3 flex flex-col justify-between shadow-sm">
+
       <div className="overflow-hidden w-full">
+
         <p className="text-[10px] text-zinc-400 leading-[1.4] font-mono break-words whitespace-pre-wrap line-clamp-4 select-none">
           {content.content}
         </p>
+
       </div>
 
       <div className="flex items-center justify-between w-full mt-2">
+
         <div className="inline-flex items-center justify-center px-1.5 py-[2px] rounded border border-zinc-700 bg-zinc-900">
+
           <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider font-sans">
             PASTED
           </span>
+
         </div>
+
       </div>
 
       <button
         onClick={() => onRemove(content.id)}
         className="absolute top-2 right-2 p-[3px] bg-zinc-800 border border-zinc-700 rounded-full text-zinc-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+        type="button"
       >
         <Icons.X className="w-2.5 h-2.5" />
       </button>
+
     </div>
   );
 };
 
-/* --- MAIN INPUT COMPONENT --- */
 
-interface ClaudeChatInputProps {
-  onSendMessage?: (data: {
-    /** Final text for the API: typed text + pasted content + file contents. */
-    query: string;
-
-    message: string;
-    files: AttachedFile[];
-    pastedContent: PastedContentItem[];
-    isThinkingEnabled: boolean;
-
-    useProduct: boolean;
-    productName: string;
-
-    useDepartment: boolean;
-    department: string;
-
-    useScope: boolean;
-    scopes: string[];
-  }) => void;
-}
+/* =========================================================
+   MAIN CHAT INPUT
+========================================================= */
 
 export const ClaudeChatInput: React.FC<
   ClaudeChatInputProps
-> = ({ onSendMessage }) => {
+> = ({
+  endpoint = "https://pramaan-backend-cphc.onrender.com/recommend",
+  queryParam = "query",
+  extraFields,
+  extraParams,
+  headers,
+  onResponse,
+  onError,
+  onSendMessage,
+}) => {
+
+  const router = useRouter();
+
   const [message, setMessage] =
     useState("");
 
@@ -301,18 +354,14 @@ export const ClaudeChatInput: React.FC<
   const [isDragging, setIsDragging] =
     useState(false);
 
-  const [
-    isThinkingEnabled,
-    setIsThinkingEnabled,
-  ] = useState(false);
+  const [isThinkingEnabled, setIsThinkingEnabled] =
+    useState(false);
 
   const [isSending, setIsSending] =
     useState(false);
 
   const [errorText, setErrorText] =
     useState<string | null>(null);
-
-  /* --- FILTER STATES --- */
 
   const [useProduct, setUseProduct] =
     useState(false);
@@ -332,172 +381,17 @@ export const ClaudeChatInput: React.FC<
   const [scopes, setScopes] =
     useState<string[]>([]);
 
-  /* --- PROMPT STATES --- */
-
-  const [validationErrors, setValidationErrors] =
-    useState<string[]>([]);
-
-  const [generatedPrompt, setGeneratedPrompt] =
-    useState("");
-
-  const [copiedPrompt, setCopiedPrompt] =
-    useState(false);
-
-  const toggleScope = (s: string) =>
+  const toggleScope = (
+    scope: string
+  ) => {
     setScopes((prev) =>
-      prev.includes(s)
-        ? prev.filter((x) => x !== s)
-        : [...prev, s]
+      prev.includes(scope)
+        ? prev.filter(
+            (item) => item !== scope
+          )
+        : [...prev, scope]
     );
-
-  /* --- PROMPT GENERATOR --- */
-
-  const generatePrompt = () => {
-    const errors: string[] = [];
-
-    if (!message.trim()) {
-      errors.push(
-        "Please enter your requirement or question."
-      );
-    }
-
-    if (!useProduct) {
-      errors.push(
-        "Please enable Product Name."
-      );
-    } else if (!productName.trim()) {
-      errors.push(
-        "Please enter the Product Name."
-      );
-    } else if (
-      productName.trim().length < 2
-    ) {
-      errors.push(
-        "Product Name must contain at least 2 characters."
-      );
-    }
-
-    if (!useDepartment) {
-      errors.push(
-        "Please enable Department."
-      );
-    } else if (!department.trim()) {
-      errors.push(
-        "Please enter the Department."
-      );
-    } else if (
-      department.trim().length < 2
-    ) {
-      errors.push(
-        "Department must contain at least 2 characters."
-      );
-    }
-
-    if (!useScope) {
-      errors.push(
-        "Please enable Scope."
-      );
-    } else if (scopes.length === 0) {
-      errors.push(
-        "Please select at least one Scope."
-      );
-    }
-
-    setValidationErrors(errors);
-    setCopiedPrompt(false);
-
-    if (errors.length > 0) {
-      setGeneratedPrompt("");
-      return;
-    }
-
-    const scopeText = scopes
-      .map((scope) => `- ${scope}`)
-      .join("\n");
-
-    const prompt = `I need information about BIS standards related to the following requirement.
-
-User Requirement:
-${message.trim()}
-
-Product:
-${productName.trim()}
-
-Department:
-${department.trim()}
-
-Required Scope:
-${scopeText}
-
-Instructions:
-1. Identify the BIS standards most directly relevant to the requirement.
-2. Prioritize standards applicable to the specified product and department.
-3. Clearly distinguish directly applicable standards from specialized, supporting, testing, and related standards.
-4. For each recommended standard, provide:
-   - BIS standard number
-   - Standard title
-   - Relevance to the requirement
-   - Why it applies to the specified product
-   - How it relates to the requested scope
-5. Do not invent BIS standard numbers, titles, requirements, or applicability.
-6. If the available information is insufficient to establish applicability, clearly state that.
-7. Do not treat a merely related standard as directly applicable.
-8. Give a concise, structured answer and prioritize the most relevant standards first.
-9. Base the recommendation on the user's specified product, department, requirement, and scope.`;
-
-    setGeneratedPrompt(prompt);
   };
-
-  /* --- COPY PROMPT --- */
-
-  const copyPrompt = async () => {
-    if (!generatedPrompt) return;
-
-    try {
-      await navigator.clipboard.writeText(
-        generatedPrompt
-      );
-
-      setCopiedPrompt(true);
-
-      setTimeout(() => {
-        setCopiedPrompt(false);
-      }, 2000);
-    } catch (error) {
-      console.error(
-        "Failed to copy prompt:",
-        error
-      );
-    }
-  };
-
-  /* --- AUTO GENERATE PROMPT --- */
-
-  useEffect(() => {
-    const isValid =
-      message.trim().length > 0 &&
-      useProduct &&
-      productName.trim().length >= 2 &&
-      useDepartment &&
-      department.trim().length >= 2 &&
-      useScope &&
-      scopes.length > 0;
-
-    if (isValid) {
-      generatePrompt();
-    } else {
-      setGeneratedPrompt("");
-      setCopiedPrompt(false);
-    }
-  }, [
-    message,
-    useProduct,
-    productName,
-    useDepartment,
-    department,
-    useScope,
-    scopes,
-  ]);
 
   const textareaRef =
     useRef<HTMLTextAreaElement>(null);
@@ -505,28 +399,45 @@ Instructions:
   const fileInputRef =
     useRef<HTMLInputElement>(null);
 
-  /* --- TEXTAREA RESIZE --- */
+
+  /* =====================================================
+     TEXTAREA AUTO HEIGHT
+  ===================================================== */
 
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height =
-        "auto";
 
-      textareaRef.current.style.height =
-        Math.min(
-          textareaRef.current.scrollHeight,
-          384
-        ) + "px";
+    if (!textareaRef.current) {
+      return;
     }
+
+    textareaRef.current.style.height =
+      "auto";
+
+    textareaRef.current.style.height =
+      Math.min(
+        textareaRef.current.scrollHeight,
+        384
+      ) + "px";
+
   }, [message]);
 
-  /* --- FILE HANDLING --- */
 
-  const handleFiles = useCallback(
-    (newFilesList: FileList | File[]) => {
-      const newFiles =
-        Array.from(newFilesList).map(
-          (file) => {
+  /* =====================================================
+     FILE HANDLING
+  ===================================================== */
+
+  const handleFiles =
+    useCallback(
+      (
+        newFilesList:
+          FileList | File[]
+      ) => {
+
+        const newFiles =
+          Array.from(
+            newFilesList
+          ).map((file) => {
+
             const isImage =
               file.type.startsWith(
                 "image/"
@@ -536,9 +447,10 @@ Instructions:
               );
 
             return {
-              id: Math.random()
-                .toString(36)
-                .substr(2, 9),
+              id:
+                Math.random()
+                  .toString(36)
+                  .substr(2, 9),
 
               file,
 
@@ -551,69 +463,95 @@ Instructions:
                 ? URL.createObjectURL(file)
                 : null,
 
-              uploadStatus: "pending",
+              uploadStatus:
+                "pending",
             };
+
+          });
+
+        setFiles((prev) => [
+          ...prev,
+          ...newFiles,
+        ]);
+
+        newFiles.forEach(
+          (newFile) => {
+
+            setTimeout(() => {
+
+              setFiles((prev) =>
+                prev.map((item) =>
+                  item.id === newFile.id
+                    ? {
+                        ...item,
+                        uploadStatus:
+                          "complete",
+                      }
+                    : item
+                )
+              );
+
+            }, 800);
+
           }
         );
 
-      setFiles((previous) => [
-        ...previous,
-        ...newFiles,
-      ]);
+      },
+      []
+    );
 
-      newFiles.forEach((file) => {
-        setTimeout(() => {
-          setFiles((previous) =>
-            previous.map((item) =>
-              item.id === file.id
-                ? {
-                    ...item,
-                    uploadStatus:
-                      "complete",
-                  }
-                : item
-            )
-          );
-        }, 800 + Math.random() * 1000);
-      });
-    },
-    []
-  );
 
-  /* --- DRAG AND DROP --- */
+  /* =====================================================
+     DRAG & DROP
+  ===================================================== */
 
   const onDragOver = (
     e: React.DragEvent
   ) => {
+
     e.preventDefault();
+
     setIsDragging(true);
+
   };
 
   const onDragLeave = (
     e: React.DragEvent
   ) => {
+
     e.preventDefault();
+
     setIsDragging(false);
+
   };
 
   const onDrop = (
     e: React.DragEvent
   ) => {
+
     e.preventDefault();
+
     setIsDragging(false);
 
     if (e.dataTransfer.files) {
+
       handleFiles(
         e.dataTransfer.files
       );
+
     }
+
   };
 
-  /* --- PASTE --- */
+
+  /* =====================================================
+     PASTE HANDLING
+  ===================================================== */
 
   const handlePaste = (
     e: React.ClipboardEvent
   ) => {
+
     const items =
       e.clipboardData.items;
 
@@ -624,169 +562,517 @@ Instructions:
       i < items.length;
       i++
     ) {
-      if (items[i].kind === "file") {
+
+      if (
+        items[i].kind === "file"
+      ) {
+
         const file =
           items[i].getAsFile();
 
         if (file) {
           pastedFiles.push(file);
         }
+
       }
+
     }
 
     if (pastedFiles.length > 0) {
+
       e.preventDefault();
-      handleFiles(pastedFiles);
+
+      handleFiles(
+        pastedFiles
+      );
+
       return;
+
     }
 
     const text =
-      e.clipboardData.getData("text");
+      e.clipboardData.getData(
+        "text"
+      );
 
     if (text.length > 300) {
+
       e.preventDefault();
 
       const snippet = {
-        id: Math.random()
-          .toString(36)
-          .substr(2, 9),
+        id:
+          Math.random()
+            .toString(36)
+            .substr(2, 9),
 
         content: text,
 
         timestamp: new Date(),
       };
 
-      setPastedContent((previous) => [
-        ...previous,
-        snippet,
-      ]);
+      setPastedContent(
+        (prev) => [
+          ...prev,
+          snippet,
+        ]
+      );
+
     }
+
   };
 
-  /* --- SEND ---
-   *
-   * Builds the final `query` string (typed text + pasted content +
-   * contents of text files) and hands it to the parent. The parent
-   * (protected/page.tsx) stores it and routes to /protected/aichat,
-   * which POSTs it to the backend /recommend endpoint:
-   *
-   *   { "query": "<user input>", "retrieval_top_k": 30, "final_top_k": 5 }
-   *
-   * No network request is made here, so only one request goes out.
-   */
+
+  /* =====================================================
+     BUILD URL
+  ===================================================== */
+
+  const buildUrl = () => {
+
+    const base =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost";
+
+    const url =
+      new URL(
+        endpoint,
+        base
+      );
+
+    if (extraParams) {
+
+      Object.entries(
+        extraParams
+      ).forEach(
+        ([key, value]) => {
+
+          url.searchParams.set(
+            key,
+            value
+          );
+
+        }
+      );
+
+    }
+
+    return /^https?:\/\//i.test(
+      endpoint
+    )
+      ? url.toString()
+      : url.pathname +
+          url.search;
+
+  };
+
+
+  /* =====================================================
+     SEND
+  ===================================================== */
 
   const handleSend = async () => {
-    const text = message.trim();
+
+    const text =
+      message.trim();
 
     if (
       !text &&
       files.length === 0 &&
       pastedContent.length === 0
     ) {
+
+      setErrorText(
+        "Please enter a query."
+      );
+
+      return;
+
+    }
+
+    if (isSending) {
       return;
     }
 
-    if (isSending) return;
+
+    /* -----------------------------------------------
+       VALIDATE PRODUCT
+    ------------------------------------------------ */
+
+    if (
+      useProduct &&
+      !productName.trim()
+    ) {
+
+      setErrorText(
+        "Please enter a product name."
+      );
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------
+       VALIDATE DEPARTMENT
+    ------------------------------------------------ */
+
+    if (
+      useDepartment &&
+      !department.trim()
+    ) {
+
+      setErrorText(
+        "Please enter a department."
+      );
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------
+       VALIDATE SCOPE
+    ------------------------------------------------ */
+
+    if (
+      useScope &&
+      scopes.length === 0
+    ) {
+
+      setErrorText(
+        "Please select at least one scope."
+      );
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------
+       BASE CHATBOX TEXT
+    ------------------------------------------------ */
+
+    const fullText = [
+      text,
+      ...pastedContent.map(
+        (item) => item.content
+      ),
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+
+    /* -----------------------------------------------
+       BUILD ONE SINGLE BACKEND QUERY
+    ------------------------------------------------ */
+
+    const queryParts: string[] = [
+      fullText,
+    ];
+
+
+    if (
+      useProduct &&
+      productName.trim()
+    ) {
+
+      queryParts.push(
+        `Product: ${productName.trim()}`
+      );
+
+    }
+
+
+    if (
+      useDepartment &&
+      department.trim()
+    ) {
+
+      queryParts.push(
+        `Department: ${department.trim()}`
+      );
+
+    }
+
+
+    if (
+      useScope &&
+      scopes.length > 0
+    ) {
+
+      queryParts.push(
+        `Scope: ${scopes.join(", ")}`
+      );
+
+    }
+
+
+    const finalQuery =
+      queryParts.join("\n");
+
+
+    /* -----------------------------------------------
+       EXACT BACKEND PAYLOAD
+    ------------------------------------------------ */
+
+    const payload = {
+      query: finalQuery,
+      retrieval_top_k: 30,
+      final_top_k: 5,
+    };
+
+
+    /* -----------------------------------------------
+       LOCAL CALLBACK
+    ------------------------------------------------ */
+
+    onSendMessage?.({
+      message: text,
+      files,
+      pastedContent,
+      isThinkingEnabled,
+      useProduct,
+      productName,
+      useDepartment,
+      department,
+      useScope,
+      scopes,
+    });
+
+
+    const url =
+      buildUrl();
 
     setIsSending(true);
     setErrorText(null);
 
+
     try {
-      const fileParts: string[] = [];
-      const skipped: string[] = [];
 
-      for (const attached of files) {
-        const content = await readFileText(
-          attached.file
-        );
-
-        if (content) {
-          fileParts.push(
-            `--- File: ${attached.file.name} ---\n${content}`
-          );
-        } else {
-          skipped.push(attached.file.name);
-        }
-      }
-
-      const query = [
-        text,
-        ...pastedContent.map(
-          (p) => p.content
-        ),
-        ...fileParts,
-      ]
-        .filter(Boolean)
-        .join("\n\n");
-
-      if (!query) {
-        setErrorText(
-          `Could not read ${skipped.join(
-            ", "
-          )}. Only text files (.txt, .md, .csv, .json) are supported.`
-        );
-        return;
-      }
-
-      if (skipped.length > 0) {
-        console.warn(
-          "Skipped unsupported files:",
-          skipped
-        );
-      }
-
-      onSendMessage?.({
-        query,
-
-        message: text,
-        files,
-        pastedContent,
-        isThinkingEnabled,
-
-        useProduct,
-        productName,
-
-        useDepartment,
-        department,
-
-        useScope,
-        scopes,
-      });
-    } catch (err) {
-      setErrorText(
-        err instanceof Error
-          ? err.message
-          : "Could not read the attached files."
+      console.log(
+        "POST:",
+        url
       );
+
+      console.log(
+        "Backend payload:",
+        payload
+      );
+
+
+      /* ---------------------------------------------
+         SEND TO BACKEND
+      --------------------------------------------- */
+
+      const res =
+        await fetch(
+          url,
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Accept:
+                "application/json",
+
+              ...headers,
+            },
+
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
+
+
+      /* ---------------------------------------------
+         READ RESPONSE
+      --------------------------------------------- */
+
+      const raw =
+        await res.text();
+
+      let data: unknown =
+        raw;
+
+
+      try {
+
+        data =
+          JSON.parse(raw);
+
+      } catch {
+
+        // Backend response was not JSON.
+
+      }
+
+
+      /* ---------------------------------------------
+         HANDLE HTTP ERROR
+      --------------------------------------------- */
+
+      if (!res.ok) {
+
+        throw new Error(
+          `Request failed with status ${res.status}`
+        );
+
+      }
+
+
+      /* ---------------------------------------------
+         LOG BACKEND RESPONSE
+      --------------------------------------------- */
+
+      console.log(
+        "Backend response:",
+        data
+      );
+
+
+      /* ---------------------------------------------
+         SAVE RESPONSE FOR RESULT PAGE
+      --------------------------------------------- */
+
+      sessionStorage.setItem(
+        "recommendation:result",
+        JSON.stringify(data)
+      );
+
+
+      /* ---------------------------------------------
+         CALLBACK
+      --------------------------------------------- */
+
+      onResponse?.({
+        ok: true,
+        status: res.status,
+        url,
+        data,
+      });
+
+
+      /* ---------------------------------------------
+         CLEAR INPUT
+      --------------------------------------------- */
+
+      setMessage("");
+
+      setFiles([]);
+
+      setPastedContent([]);
+
+      setUseProduct(false);
+
+      setProductName("");
+
+      setUseDepartment(false);
+
+      setDepartment("");
+
+      setUseScope(false);
+
+      setScopes([]);
+
+
+      if (
+        textareaRef.current
+      ) {
+
+        textareaRef.current.style.height =
+          "auto";
+
+      }
+
+
+      /* ---------------------------------------------
+         GO TO RESULT PAGE
+      --------------------------------------------- */
+
+      router.push(
+        "/protected/result"
+      );
+
+    } catch (err) {
+
+      const error =
+        err instanceof Error
+          ? err
+          : new Error(
+              "Request failed"
+            );
+
+
+      console.error(
+        "Recommendation request failed:",
+        error
+      );
+
+
+      setErrorText(
+        `${error.message}. Check the backend endpoint and try again.`
+      );
+
+
+      onError?.(
+        error
+      );
+
     } finally {
+
       setIsSending(false);
+
     }
+
   };
 
-  /* --- KEYBOARD --- */
+
+  /* =====================================================
+     KEYBOARD
+  ===================================================== */
 
   const handleKeyDown = (
     e: React.KeyboardEvent
   ) => {
+
     if (
       e.key === "Enter" &&
       !e.shiftKey
     ) {
+
       e.preventDefault();
+
       handleSend();
+
     }
+
   };
 
-  const hasContent = Boolean(
-    message.trim() ||
-      files.length > 0 ||
-      pastedContent.length > 0
-  );
+
+  /* =====================================================
+     SEND BUTTON STATE
+  ===================================================== */
+
+  const hasContent =
+    Boolean(
+      message.trim() ||
+        files.length > 0 ||
+        pastedContent.length > 0
+    );
+
 
   const canSend =
-    hasContent && !isSending;
+    hasContent &&
+    !isSending;
 
-  /* --- UI --- */
+
+  /* =====================================================
+     UI
+  ===================================================== */
 
   return (
     <div
@@ -796,53 +1082,78 @@ Instructions:
       onDrop={onDrop}
     >
 
-      {/* MAIN CHATBOX */}
+      {/* =================================================
+          MAIN CHATBOX
+      ================================================= */}
 
-      <div className="flex flex-col mx-2 md:mx-0 items-stretch transition-all duration-200 relative z-10 rounded-2xl border border-zinc-800 bg-[#18181b] p-3 shadow-2xl">
+      <div
+        className={`flex flex-col mx-2 md:mx-0 items-stretch transition-all duration-200 relative z-10 rounded-2xl border bg-[#18181b] p-3 shadow-2xl ${
+          isDragging
+            ? "border-white"
+            : "border-zinc-800"
+        }`}
+      >
 
-        {/* ATTACHMENTS */}
+        {/* ---------------------------------------------
+            FILE / PASTED CONTENT PREVIEW
+        ---------------------------------------------- */}
 
-        {(files.length > 0 ||
-          pastedContent.length > 0) && (
+        {(
+          files.length > 0 ||
+          pastedContent.length > 0
+        ) && (
+
           <div className="flex gap-3 overflow-x-auto pb-2 px-1">
 
             {pastedContent.map(
               (content) => (
+
                 <PastedContentCard
                   key={content.id}
                   content={content}
                   onRemove={(id) =>
                     setPastedContent(
-                      (previous) =>
-                        previous.filter(
+                      (prev) =>
+                        prev.filter(
                           (item) =>
                             item.id !== id
                         )
                     )
                   }
                 />
+
               )
             )}
 
-            {files.map((file) => (
-              <FilePreviewCard
-                key={file.id}
-                file={file}
-                onRemove={(id) =>
-                  setFiles(
-                    (previous) =>
-                      previous.filter(
-                        (item) =>
-                          item.id !== id
-                      )
-                  )
-                }
-              />
-            ))}
+
+            {files.map(
+              (file) => (
+
+                <FilePreviewCard
+                  key={file.id}
+                  file={file}
+                  onRemove={(id) =>
+                    setFiles(
+                      (prev) =>
+                        prev.filter(
+                          (item) =>
+                            item.id !== id
+                        )
+                    )
+                  }
+                />
+
+              )
+            )}
+
           </div>
+
         )}
 
-        {/* TEXTAREA */}
+
+        {/* ---------------------------------------------
+            TEXTAREA
+        ---------------------------------------------- */}
 
         <div className="relative mb-2">
 
@@ -850,7 +1161,9 @@ Instructions:
             ref={textareaRef}
             value={message}
             onChange={(e) =>
-              setMessage(e.target.value)
+              setMessage(
+                e.target.value
+              )
             }
             onPaste={handlePaste}
             onKeyDown={handleKeyDown}
@@ -863,7 +1176,10 @@ Instructions:
 
         </div>
 
-        {/* BOTTOM BUTTONS */}
+
+        {/* ---------------------------------------------
+            BOTTOM CONTROLS
+        ---------------------------------------------- */}
 
         <div className="flex gap-2 w-full items-center justify-between pt-1">
 
@@ -877,9 +1193,11 @@ Instructions:
               }
               className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
               type="button"
+              disabled={isSending}
             >
               <Icons.Plus className="w-5 h-5" />
             </button>
+
 
             {/* THINKING BUTTON */}
 
@@ -895,11 +1213,13 @@ Instructions:
                   : "text-zinc-400 hover:text-white hover:bg-zinc-800"
               }`}
               type="button"
+              disabled={isSending}
             >
               <Icons.Thinking className="w-5 h-5" />
             </button>
 
           </div>
+
 
           {/* SEND BUTTON */}
 
@@ -915,25 +1235,32 @@ Instructions:
               }`}
               type="button"
             >
+
               {isSending ? (
                 <Icons.Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Icons.ArrowUp className="w-4 h-4" />
               )}
+
             </button>
 
           </div>
 
         </div>
+
       </div>
 
-      {/* ================================================== */}
-      {/* CHATBOX FILTERS                                   */}
-      {/* ================================================== */}
 
-      <div className="mt-3 mx-2 md:mx-0 flex flex-wrap items-center gap-x-6 gap-y-3 px-2 text-sm text-zinc-300">
+      {/* =================================================
+          PRODUCT / DEPARTMENT / SCOPE
+      ================================================= */}
 
-        {/* PRODUCT NAME */}
+      <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-3 px-2 text-sm text-zinc-300">
+
+
+        {/* =================================================
+            PRODUCT NAME
+        ================================================= */}
 
         <div className="flex items-center gap-2">
 
@@ -955,7 +1282,9 @@ Instructions:
 
           </label>
 
+
           {useProduct && (
+
             <input
               value={productName}
               onChange={(e) =>
@@ -967,11 +1296,15 @@ Instructions:
               disabled={isSending}
               className="h-7 w-48 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-xs text-white outline-none placeholder:text-zinc-500 focus:border-zinc-500"
             />
+
           )}
 
         </div>
 
-        {/* DEPARTMENT */}
+
+        {/* =================================================
+            DEPARTMENT
+        ================================================= */}
 
         <div className="flex items-center gap-2">
 
@@ -993,7 +1326,9 @@ Instructions:
 
           </label>
 
+
           {useDepartment && (
+
             <input
               value={department}
               onChange={(e) =>
@@ -1005,11 +1340,15 @@ Instructions:
               disabled={isSending}
               className="h-7 w-44 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-xs text-white outline-none placeholder:text-zinc-500 focus:border-zinc-500"
             />
+
           )}
 
         </div>
 
-        {/* SCOPE */}
+
+        {/* =================================================
+            SCOPE
+        ================================================= */}
 
         <div className="flex flex-wrap items-center gap-2">
 
@@ -1031,9 +1370,11 @@ Instructions:
 
           </label>
 
+
           {useScope &&
             SCOPE_OPTIONS.map(
               (scope) => (
+
                 <label
                   key={scope}
                   className={`flex cursor-pointer select-none items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs capitalize transition-colors ${
@@ -1050,7 +1391,9 @@ Instructions:
                     )}
                     disabled={isSending}
                     onChange={() =>
-                      toggleScope(scope)
+                      toggleScope(
+                        scope
+                      )
                     }
                     className="hidden"
                   />
@@ -1058,6 +1401,7 @@ Instructions:
                   {scope}
 
                 </label>
+
               )
             )}
 
@@ -1065,109 +1409,10 @@ Instructions:
 
       </div>
 
-      {/* ================================================== */}
-      {/* VALIDATION ERRORS                                 */}
-      {/* ================================================== */}
 
-      {validationErrors.length > 0 && (
-        <div className="mt-3 mx-2 md:mx-0 rounded-lg border border-red-900/60 bg-red-950/20 px-3 py-2">
-
-          <div className="mb-1 text-xs font-medium text-red-400">
-            Please fix the following:
-          </div>
-
-          <ul className="space-y-1">
-
-            {validationErrors.map(
-              (error, index) => (
-                <li
-                  key={index}
-                  className="text-xs text-red-400"
-                >
-                  • {error}
-                </li>
-              )
-            )}
-
-          </ul>
-
-        </div>
-      )}
-
-      {/* ================================================== */}
-      {/* GENERATED PROMPT                                 */}
-      {/* ================================================== */}
-
-      {generatedPrompt && (
-        <div className="mt-4 mx-2 md:mx-0 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900/70">
-
-          {/* PROMPT HEADER */}
-
-          <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-
-            <div>
-
-              <h3 className="text-sm font-medium text-white">
-                Generated Prompt
-              </h3>
-
-              <p className="mt-0.5 text-xs text-zinc-500">
-                Ready to copy and paste into the chatbox
-              </p>
-
-            </div>
-
-            <button
-              type="button"
-              onClick={copyPrompt}
-              className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
-            >
-
-              {copiedPrompt ? (
-                <>
-                  <Icons.Check className="h-3.5 w-3.5" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  Copy Prompt
-                </>
-              )}
-
-            </button>
-
-          </div>
-
-          {/* PROMPT TEXT */}
-
-          <div className="p-4">
-
-            <textarea
-              value={generatedPrompt}
-              readOnly
-              className="min-h-[260px] w-full resize-y rounded-lg border border-zinc-800 bg-black/30 p-3 text-xs leading-relaxed text-zinc-300 outline-none"
-            />
-
-          </div>
-
-        </div>
-      )}
-
-      {/* ================================================== */}
-      {/* DRAG AND DROP OVERLAY                             */}
-      {/* ================================================== */}
-
-      {isDragging && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-2xl border-2 border-dashed border-zinc-500 bg-black/30">
-
-          <span className="rounded-lg bg-zinc-900/90 px-4 py-2 text-sm text-zinc-200">
-            Drop files here
-          </span>
-
-        </div>
-      )}
-
-      {/* HIDDEN FILE INPUT */}
+      {/* =================================================
+          HIDDEN FILE INPUT
+      ================================================= */}
 
       <input
         ref={fileInputRef}
@@ -1177,9 +1422,11 @@ Instructions:
         onChange={(e) => {
 
           if (e.target.files) {
+
             handleFiles(
               e.target.files
             );
+
           }
 
           e.target.value = "";
@@ -1187,7 +1434,10 @@ Instructions:
         }}
       />
 
-      {/* ERROR / DISCLAIMER */}
+
+      {/* =================================================
+          ERROR / DISCLAIMER
+      ================================================= */}
 
       <div className="text-center mt-3 space-y-1">
 
