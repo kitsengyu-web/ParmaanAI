@@ -14,8 +14,6 @@ import {
   X,
   FileText,
   Loader2,
-  Check,
-  Archive,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
@@ -27,6 +25,7 @@ const SCOPE_OPTIONS = [
   "testing",
   "related",
 ] as const;
+
 
 /* =========================================================
    ICONS
@@ -91,8 +90,6 @@ export const Icons = {
   X: X,
   FileText: FileText,
   Loader2: Loader2,
-  Check: Check,
-  Archive: Archive,
 };
 
 
@@ -172,15 +169,31 @@ interface ClaudeChatInputProps {
   ) => void;
 
   onSendMessage?: (data: {
+    /*
+     * IMPORTANT:
+     * query is included here because
+     * protected/page.tsx expects it.
+     */
+    query: string;
+
     message: string;
+
     files: AttachedFile[];
+
     pastedContent: PastedContentItem[];
+
     isThinkingEnabled: boolean;
+
     useProduct: boolean;
+
     productName: string;
+
     useDepartment: boolean;
+
     department: string;
+
     useScope: boolean;
+
     scopes: string[];
   }) => void;
 }
@@ -263,7 +276,9 @@ const FilePreviewCard: React.FC<
 
       {file.uploadStatus === "uploading" && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+
           <Icons.Loader2 className="w-5 h-5 text-white animate-spin" />
+
         </div>
       )}
 
@@ -311,7 +326,9 @@ const PastedContentCard: React.FC<
       </div>
 
       <button
-        onClick={() => onRemove(content.id)}
+        onClick={() =>
+          onRemove(content.id)
+        }
         className="absolute top-2 right-2 p-[3px] bg-zinc-800 border border-zinc-700 rounded-full text-zinc-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
         type="button"
       >
@@ -330,13 +347,21 @@ const PastedContentCard: React.FC<
 export const ClaudeChatInput: React.FC<
   ClaudeChatInputProps
 > = ({
-  endpoint = "https://pramaan-backend-cphc.onrender.com/recommend",
+  endpoint =
+    "https://pramaan-backend-cphc.onrender.com/recommend",
+
   queryParam = "query",
+
   extraFields,
+
   extraParams,
+
   headers,
+
   onResponse,
+
   onError,
+
   onSendMessage,
 }) => {
 
@@ -363,6 +388,11 @@ export const ClaudeChatInput: React.FC<
   const [errorText, setErrorText] =
     useState<string | null>(null);
 
+
+  /* =====================================================
+     PRODUCT / DEPARTMENT / SCOPE
+  ===================================================== */
+
   const [useProduct, setUseProduct] =
     useState(false);
 
@@ -381,17 +411,25 @@ export const ClaudeChatInput: React.FC<
   const [scopes, setScopes] =
     useState<string[]>([]);
 
+
   const toggleScope = (
     scope: string
   ) => {
+
     setScopes((prev) =>
       prev.includes(scope)
         ? prev.filter(
-            (item) => item !== scope
+            (item) =>
+              item !== scope
           )
-        : [...prev, scope]
+        : [
+            ...prev,
+            scope,
+          ]
     );
+
   };
+
 
   const textareaRef =
     useRef<HTMLTextAreaElement>(null);
@@ -460,7 +498,9 @@ export const ClaudeChatInput: React.FC<
                   "application/octet-stream",
 
               preview: isImage
-                ? URL.createObjectURL(file)
+                ? URL.createObjectURL(
+                    file
+                  )
                 : null,
 
               uploadStatus:
@@ -480,14 +520,16 @@ export const ClaudeChatInput: React.FC<
             setTimeout(() => {
 
               setFiles((prev) =>
-                prev.map((item) =>
-                  item.id === newFile.id
-                    ? {
-                        ...item,
-                        uploadStatus:
-                          "complete",
-                      }
-                    : item
+                prev.map(
+                  (item) =>
+                    item.id ===
+                    newFile.id
+                      ? {
+                          ...item,
+                          uploadStatus:
+                            "complete",
+                        }
+                      : item
                 )
               );
 
@@ -515,6 +557,7 @@ export const ClaudeChatInput: React.FC<
 
   };
 
+
   const onDragLeave = (
     e: React.DragEvent
   ) => {
@@ -524,6 +567,7 @@ export const ClaudeChatInput: React.FC<
     setIsDragging(false);
 
   };
+
 
   const onDrop = (
     e: React.DragEvent
@@ -557,6 +601,7 @@ export const ClaudeChatInput: React.FC<
 
     const pastedFiles: File[] = [];
 
+
     for (
       let i = 0;
       i < items.length;
@@ -578,6 +623,7 @@ export const ClaudeChatInput: React.FC<
 
     }
 
+
     if (pastedFiles.length > 0) {
 
       e.preventDefault();
@@ -590,10 +636,12 @@ export const ClaudeChatInput: React.FC<
 
     }
 
+
     const text =
       e.clipboardData.getData(
         "text"
       );
+
 
     if (text.length > 300) {
 
@@ -639,6 +687,7 @@ export const ClaudeChatInput: React.FC<
         base
       );
 
+
     if (extraParams) {
 
       Object.entries(
@@ -656,6 +705,7 @@ export const ClaudeChatInput: React.FC<
 
     }
 
+
     return /^https?:\/\//i.test(
       endpoint
     )
@@ -667,13 +717,18 @@ export const ClaudeChatInput: React.FC<
 
 
   /* =====================================================
-     SEND
+     SEND TO BACKEND
   ===================================================== */
 
   const handleSend = async () => {
 
     const text =
       message.trim();
+
+
+    /* -----------------------------------------------
+       BASIC VALIDATION
+    ------------------------------------------------ */
 
     if (
       !text &&
@@ -689,13 +744,14 @@ export const ClaudeChatInput: React.FC<
 
     }
 
+
     if (isSending) {
       return;
     }
 
 
     /* -----------------------------------------------
-       VALIDATE PRODUCT
+       PRODUCT VALIDATION
     ------------------------------------------------ */
 
     if (
@@ -713,7 +769,7 @@ export const ClaudeChatInput: React.FC<
 
 
     /* -----------------------------------------------
-       VALIDATE DEPARTMENT
+       DEPARTMENT VALIDATION
     ------------------------------------------------ */
 
     if (
@@ -731,7 +787,7 @@ export const ClaudeChatInput: React.FC<
 
 
     /* -----------------------------------------------
-       VALIDATE SCOPE
+       SCOPE VALIDATION
     ------------------------------------------------ */
 
     if (
@@ -749,13 +805,15 @@ export const ClaudeChatInput: React.FC<
 
 
     /* -----------------------------------------------
-       BASE CHATBOX TEXT
+       BUILD BASE TEXT
     ------------------------------------------------ */
 
     const fullText = [
       text,
+
       ...pastedContent.map(
-        (item) => item.content
+        (item) =>
+          item.content
       ),
     ]
       .filter(Boolean)
@@ -763,7 +821,7 @@ export const ClaudeChatInput: React.FC<
 
 
     /* -----------------------------------------------
-       BUILD ONE SINGLE BACKEND QUERY
+       BUILD THE SINGLE BACKEND QUERY
     ------------------------------------------------ */
 
     const queryParts: string[] = [
@@ -812,7 +870,10 @@ export const ClaudeChatInput: React.FC<
 
 
     /* -----------------------------------------------
-       EXACT BACKEND PAYLOAD
+       BACKEND PAYLOAD
+
+       IMPORTANT:
+       Only these three fields are sent.
     ------------------------------------------------ */
 
     const payload = {
@@ -823,19 +884,33 @@ export const ClaudeChatInput: React.FC<
 
 
     /* -----------------------------------------------
-       LOCAL CALLBACK
+       CALLBACK
+
+       query is included here to match
+       protected/page.tsx
     ------------------------------------------------ */
 
     onSendMessage?.({
+      query: finalQuery,
+
       message: text,
+
       files,
+
       pastedContent,
+
       isThinkingEnabled,
+
       useProduct,
+
       productName,
+
       useDepartment,
+
       department,
+
       useScope,
+
       scopes,
     });
 
@@ -843,7 +918,9 @@ export const ClaudeChatInput: React.FC<
     const url =
       buildUrl();
 
+
     setIsSending(true);
+
     setErrorText(null);
 
 
@@ -861,7 +938,7 @@ export const ClaudeChatInput: React.FC<
 
 
       /* ---------------------------------------------
-         SEND TO BACKEND
+         BACKEND REQUEST
       --------------------------------------------- */
 
       const res =
@@ -895,6 +972,7 @@ export const ClaudeChatInput: React.FC<
       const raw =
         await res.text();
 
+
       let data: unknown =
         raw;
 
@@ -906,13 +984,13 @@ export const ClaudeChatInput: React.FC<
 
       } catch {
 
-        // Backend response was not JSON.
+        // Backend did not return JSON.
 
       }
 
 
       /* ---------------------------------------------
-         HANDLE HTTP ERROR
+         HTTP ERROR
       --------------------------------------------- */
 
       if (!res.ok) {
@@ -923,10 +1001,6 @@ export const ClaudeChatInput: React.FC<
 
       }
 
-
-      /* ---------------------------------------------
-         LOG BACKEND RESPONSE
-      --------------------------------------------- */
 
       console.log(
         "Backend response:",
@@ -945,13 +1019,16 @@ export const ClaudeChatInput: React.FC<
 
 
       /* ---------------------------------------------
-         CALLBACK
+         RESPONSE CALLBACK
       --------------------------------------------- */
 
       onResponse?.({
         ok: true,
+
         status: res.status,
+
         url,
+
         data,
       });
 
@@ -1054,7 +1131,7 @@ export const ClaudeChatInput: React.FC<
 
 
   /* =====================================================
-     SEND BUTTON STATE
+     BUTTON STATE
   ===================================================== */
 
   const hasContent =
@@ -1095,7 +1172,7 @@ export const ClaudeChatInput: React.FC<
       >
 
         {/* ---------------------------------------------
-            FILE / PASTED CONTENT PREVIEW
+            FILE PREVIEWS
         ---------------------------------------------- */}
 
         {(
@@ -1178,14 +1255,14 @@ export const ClaudeChatInput: React.FC<
 
 
         {/* ---------------------------------------------
-            BOTTOM CONTROLS
+            BOTTOM BUTTONS
         ---------------------------------------------- */}
 
         <div className="flex gap-2 w-full items-center justify-between pt-1">
 
           <div className="flex items-center gap-1">
 
-            {/* FILE BUTTON */}
+            {/* FILE */}
 
             <button
               onClick={() =>
@@ -1195,11 +1272,13 @@ export const ClaudeChatInput: React.FC<
               type="button"
               disabled={isSending}
             >
+
               <Icons.Plus className="w-5 h-5" />
+
             </button>
 
 
-            {/* THINKING BUTTON */}
+            {/* THINKING */}
 
             <button
               onClick={() =>
@@ -1215,36 +1294,34 @@ export const ClaudeChatInput: React.FC<
               type="button"
               disabled={isSending}
             >
+
               <Icons.Thinking className="w-5 h-5" />
-            </button>
-
-          </div>
-
-
-          {/* SEND BUTTON */}
-
-          <div className="flex items-center gap-2">
-
-            <button
-              onClick={handleSend}
-              disabled={!canSend}
-              className={`inline-flex items-center justify-center h-8 w-8 rounded-xl transition-all ${
-                canSend
-                  ? "bg-white text-black hover:bg-zinc-200"
-                  : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-              }`}
-              type="button"
-            >
-
-              {isSending ? (
-                <Icons.Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Icons.ArrowUp className="w-4 h-4" />
-              )}
 
             </button>
 
           </div>
+
+
+          {/* SEND */}
+
+          <button
+            onClick={handleSend}
+            disabled={!canSend}
+            className={`inline-flex items-center justify-center h-8 w-8 rounded-xl transition-all ${
+              canSend
+                ? "bg-white text-black hover:bg-zinc-200"
+                : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+            }`}
+            type="button"
+          >
+
+            {isSending ? (
+              <Icons.Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Icons.ArrowUp className="w-4 h-4" />
+            )}
+
+          </button>
 
         </div>
 
@@ -1336,7 +1413,7 @@ export const ClaudeChatInput: React.FC<
                   e.target.value
                 )
               }
-              placeholder="e.g. Electrotechnical"
+              placeholder="e.g. Electrical"
               disabled={isSending}
               className="h-7 w-44 rounded-md border border-zinc-700 bg-zinc-900 px-2 text-xs text-white outline-none placeholder:text-zinc-500 focus:border-zinc-500"
             />
@@ -1436,16 +1513,27 @@ export const ClaudeChatInput: React.FC<
 
 
       {/* =================================================
-          ERROR / DISCLAIMER
+          ERROR
       ================================================= */}
 
-      <div className="text-center mt-3 space-y-1">
+      {errorText && (
 
-        {errorText && (
+        <div className="text-center mt-3">
+
           <p className="text-xs text-red-400">
             {errorText}
           </p>
-        )}
+
+        </div>
+
+      )}
+
+
+      {/* =================================================
+          DISCLAIMER
+      ================================================= */}
+
+      <div className="text-center mt-2">
 
         <p className="text-xs text-zinc-500">
           AI can make mistakes. Please check important information.
