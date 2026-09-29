@@ -114,6 +114,33 @@ const formatFileSize = (bytes: number) => {
   );
 };
 
+/*
+ * The backend only accepts JSON ({ query, ... }), so files are not
+ * uploaded. Text-based files are read in the browser and their contents
+ * are appended to the query string.
+ */
+const MAX_FILE_CHARS = 4000;
+
+const TEXT_FILE_EXT =
+  /\.(txt|md|csv|json|log|xml|html?|ya?ml)$/i;
+
+const readFileText = async (
+  file: File
+): Promise<string | null> => {
+  const isText =
+    file.type.startsWith("text/") ||
+    file.type === "application/json" ||
+    TEXT_FILE_EXT.test(file.name);
+
+  if (!isText) return null;
+
+  const text = await file.text();
+
+  return text.length > MAX_FILE_CHARS
+    ? text.slice(0, MAX_FILE_CHARS)
+    : text;
+};
+
 /* --- TYPES --- */
 
 interface AttachedFile {
@@ -238,27 +265,11 @@ const PastedContentCard: React.FC<
 
 /* --- MAIN INPUT COMPONENT --- */
 
-interface SendResult {
-  ok: boolean;
-  status: number;
-  url: string;
-  data: unknown;
-}
-
 interface ClaudeChatInputProps {
-  endpoint?: string;
-  queryParam?: string;
-  extraFields?: Record<string, unknown>;
-  extraParams?: Record<string, string>;
-  headers?: Record<string, string>;
-
-  onResponse?: (
-    result: SendResult
-  ) => void;
-
-  onError?: (error: Error) => void;
-
   onSendMessage?: (data: {
+    /** Final text for the API: typed text + pasted content + file contents. */
+    query: string;
+
     message: string;
     files: AttachedFile[];
     pastedContent: PastedContentItem[];
@@ -277,25 +288,7 @@ interface ClaudeChatInputProps {
 
 export const ClaudeChatInput: React.FC<
   ClaudeChatInputProps
-> = ({
-  endpoint =
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://127.0.0.1:8000/recommend",
-
-  queryParam = "query",
-
-  extraFields,
-
-  extraParams,
-
-  headers,
-
-  onResponse,
-
-  onError,
-
-  onSendMessage,
-}) => {
+> = ({ onSendMessage }) => {
   const [message, setMessage] =
     useState("");
 
@@ -670,36 +663,17 @@ Instructions:
     }
   };
 
-  /* --- BUILD URL --- */
-
-  const buildUrl = () => {
-    const base =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost";
-
-    const url = new URL(
-      endpoint,
-      base
-    );
-
-    if (extraParams) {
-      Object.entries(extraParams).forEach(
-        ([key, value]) => {
-          url.searchParams.set(
-            key,
-            value
-          );
-        }
-      );
-    }
-
-    return /^https?:\/\//i.test(endpoint)
-      ? url.toString()
-      : url.pathname + url.search;
-  };
-
-  /* --- SEND --- */
+  /* --- SEND ---
+   *
+   * Builds the final `query` string (typed text + pasted content +
+   * contents of text files) and hands it to the parent. The parent
+   * (protected/page.tsx) stores it and routes to /protected/aichat,
+   * which POSTs it to the backend /recommend endpoint:
+   *
+   *   { "query": "<user input>", "retrieval_top_k": 30, "final_top_k": 5 }
+   *
+   * No network request is made here, so only one request goes out.
+   */
 
   const handleSend = async () => {
     const text = message.trim();
@@ -714,123 +688,76 @@ Instructions:
 
     if (isSending) return;
 
-    const fullText = [
-      text,
-      ...pastedContent.map(
-        (p) => p.content
-      ),
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-
-    onSendMessage?.({
-      message: text,
-      files,
-      pastedContent,
-      isThinkingEnabled,
-
-      useProduct,
-      productName,
-
-      useDepartment,
-      department,
-
-      useScope,
-      scopes,
-    });
-
-    const url = buildUrl();
-
     setIsSending(true);
     setErrorText(null);
 
     try {
-      const res = await fetch(url, {
-        method: "POST",
+      const fileParts: string[] = [];
+      const skipped: string[] = [];
 
-        headers: {
-          "Content-Type":
-            "application/json",
+      for (const attached of files) {
+        const content = await readFileText(
+          attached.file
+        );
 
-          Accept:
-            "application/json",
-
-          ...headers,
-        },
-
-        body: JSON.stringify({
-          ...extraFields,
-
-          [queryParam]: fullText,
-
-          ...(useProduct &&
-          productName.trim()
-            ? {
-                product_name:
-                  productName.trim(),
-              }
-            : {}),
-
-          ...(useDepartment &&
-          department.trim()
-            ? {
-                department:
-                  department.trim(),
-              }
-            : {}),
-
-          ...(useScope &&
-          scopes.length
-            ? {
-                scope: scopes,
-              }
-            : {}),
-        }),
-      });
-
-      const raw =
-        await res.text();
-
-      let data: unknown = raw;
-
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        /* response wasn't JSON */
+        if (content) {
+          fileParts.push(
+            `--- File: ${attached.file.name} ---\n${content}`
+          );
+        } else {
+          skipped.push(attached.file.name);
+        }
       }
 
-      if (!res.ok) {
-        throw new Error(
-          `Request failed with ${res.status}`
+      const query = [
+        text,
+        ...pastedContent.map(
+          (p) => p.content
+        ),
+        ...fileParts,
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
+      if (!query) {
+        setErrorText(
+          `Could not read ${skipped.join(
+            ", "
+          )}. Only text files (.txt, .md, .csv, .json) are supported.`
+        );
+        return;
+      }
+
+      if (skipped.length > 0) {
+        console.warn(
+          "Skipped unsupported files:",
+          skipped
         );
       }
 
-      onResponse?.({
-        ok: res.ok,
-        status: res.status,
-        url,
-        data,
+      onSendMessage?.({
+        query,
+
+        message: text,
+        files,
+        pastedContent,
+        isThinkingEnabled,
+
+        useProduct,
+        productName,
+
+        useDepartment,
+        department,
+
+        useScope,
+        scopes,
       });
-
-      setMessage("");
-      setFiles([]);
-      setPastedContent([]);
-
-      if (textareaRef.current) {
-        textareaRef.current.style.height =
-          "auto";
-      }
     } catch (err) {
-      const error =
-        err instanceof Error
-          ? err
-          : new Error("Request failed");
-
       setErrorText(
-        `${error.message}. Check the endpoint and try again.`
+        err instanceof Error
+          ? err.message
+          : "Could not read the attached files."
       );
-
-      onError?.(error);
     } finally {
       setIsSending(false);
     }
