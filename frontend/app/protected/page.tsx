@@ -44,7 +44,7 @@ export default function ProtectedChatPage() {
 
       if (!session) {
         setUser(null);
-        router.push("/login");
+        router.push("/auth/login");
       } else {
         setUser(session.user);
       }
@@ -67,8 +67,13 @@ export default function ProtectedChatPage() {
 
   /*
    * Receives everything selected/entered in ClaudeChatInput.
+   *
+   * `query` is the final text for the API: typed text + pasted content
+   * + contents of attached text files (built in chat.tsx).
    */
   const handleSendMessage = (data: {
+    query: string;
+
     message: string;
     files: any[];
     pastedContent: any[];
@@ -96,6 +101,8 @@ export default function ProtectedChatPage() {
     sessionStorage.setItem(
       "chat:lastRequest",
       JSON.stringify({
+        query: data.query,
+
         message: data.message,
 
         files: data.files.map((file) => ({
@@ -127,12 +134,13 @@ export default function ProtectedChatPage() {
     );
 
     /*
-     * Keep the old key too, in case the result/aichat page
-     * is already reading it.
+     * /protected/aichat reads this key and POSTs it to /recommend
+     * as { query, retrieval_top_k: 30, final_top_k: 5 }.
+     * It must be the combined query, not just the typed message.
      */
     sessionStorage.setItem(
       "chat:lastMessage",
-      data.message
+      data.query
     );
 
     /*
