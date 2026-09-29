@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
-
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Plus,
   ChevronDown,
@@ -325,7 +319,7 @@ export const ClaudeChatInput: React.FC<
   const [errorText, setErrorText] =
     useState<string | null>(null);
 
-  /* --- NEW FILTER STATES --- */
+  /* --- FILTER STATES --- */
 
   const [useProduct, setUseProduct] =
     useState(false);
@@ -343,17 +337,174 @@ export const ClaudeChatInput: React.FC<
     useState(false);
 
   const [scopes, setScopes] =
-    useState<string[]>(["direct"]);
+    useState<string[]>([]);
 
-  const toggleScope = (scope: string) => {
-    setScopes((previous) =>
-      previous.includes(scope)
-        ? previous.filter(
-            (item) => item !== scope
-          )
-        : [...previous, scope]
+  /* --- PROMPT STATES --- */
+
+  const [validationErrors, setValidationErrors] =
+    useState<string[]>([]);
+
+  const [generatedPrompt, setGeneratedPrompt] =
+    useState("");
+
+  const [copiedPrompt, setCopiedPrompt] =
+    useState(false);
+
+  const toggleScope = (s: string) =>
+    setScopes((prev) =>
+      prev.includes(s)
+        ? prev.filter((x) => x !== s)
+        : [...prev, s]
     );
+
+  /* --- PROMPT GENERATOR --- */
+
+  const generatePrompt = () => {
+    const errors: string[] = [];
+
+    if (!message.trim()) {
+      errors.push(
+        "Please enter your requirement or question."
+      );
+    }
+
+    if (!useProduct) {
+      errors.push(
+        "Please enable Product Name."
+      );
+    } else if (!productName.trim()) {
+      errors.push(
+        "Please enter the Product Name."
+      );
+    } else if (
+      productName.trim().length < 2
+    ) {
+      errors.push(
+        "Product Name must contain at least 2 characters."
+      );
+    }
+
+    if (!useDepartment) {
+      errors.push(
+        "Please enable Department."
+      );
+    } else if (!department.trim()) {
+      errors.push(
+        "Please enter the Department."
+      );
+    } else if (
+      department.trim().length < 2
+    ) {
+      errors.push(
+        "Department must contain at least 2 characters."
+      );
+    }
+
+    if (!useScope) {
+      errors.push(
+        "Please enable Scope."
+      );
+    } else if (scopes.length === 0) {
+      errors.push(
+        "Please select at least one Scope."
+      );
+    }
+
+    setValidationErrors(errors);
+    setCopiedPrompt(false);
+
+    if (errors.length > 0) {
+      setGeneratedPrompt("");
+      return;
+    }
+
+    const scopeText = scopes
+      .map((scope) => `- ${scope}`)
+      .join("\n");
+
+    const prompt = `I need information about BIS standards related to the following requirement.
+
+User Requirement:
+${message.trim()}
+
+Product:
+${productName.trim()}
+
+Department:
+${department.trim()}
+
+Required Scope:
+${scopeText}
+
+Instructions:
+1. Identify the BIS standards most directly relevant to the requirement.
+2. Prioritize standards applicable to the specified product and department.
+3. Clearly distinguish directly applicable standards from specialized, supporting, testing, and related standards.
+4. For each recommended standard, provide:
+   - BIS standard number
+   - Standard title
+   - Relevance to the requirement
+   - Why it applies to the specified product
+   - How it relates to the requested scope
+5. Do not invent BIS standard numbers, titles, requirements, or applicability.
+6. If the available information is insufficient to establish applicability, clearly state that.
+7. Do not treat a merely related standard as directly applicable.
+8. Give a concise, structured answer and prioritize the most relevant standards first.
+9. Base the recommendation on the user's specified product, department, requirement, and scope.`;
+
+    setGeneratedPrompt(prompt);
   };
+
+  /* --- COPY PROMPT --- */
+
+  const copyPrompt = async () => {
+    if (!generatedPrompt) return;
+
+    try {
+      await navigator.clipboard.writeText(
+        generatedPrompt
+      );
+
+      setCopiedPrompt(true);
+
+      setTimeout(() => {
+        setCopiedPrompt(false);
+      }, 2000);
+    } catch (error) {
+      console.error(
+        "Failed to copy prompt:",
+        error
+      );
+    }
+  };
+
+  /* --- AUTO GENERATE PROMPT --- */
+
+  useEffect(() => {
+    const isValid =
+      message.trim().length > 0 &&
+      useProduct &&
+      productName.trim().length >= 2 &&
+      useDepartment &&
+      department.trim().length >= 2 &&
+      useScope &&
+      scopes.length > 0;
+
+    if (isValid) {
+      generatePrompt();
+    } else {
+      setGeneratedPrompt("");
+      setCopiedPrompt(false);
+    }
+  }, [
+    message,
+    useProduct,
+    productName,
+    useDepartment,
+    department,
+    useScope,
+    scopes,
+  ]);
 
   const textareaRef =
     useRef<HTMLTextAreaElement>(null);
@@ -459,7 +610,9 @@ export const ClaudeChatInput: React.FC<
     setIsDragging(false);
 
     if (e.dataTransfer.files) {
-      handleFiles(e.dataTransfer.files);
+      handleFiles(
+        e.dataTransfer.files
+      );
     }
   };
 
@@ -564,15 +717,12 @@ export const ClaudeChatInput: React.FC<
     const fullText = [
       text,
       ...pastedContent.map(
-        (item) => item.content
+        (p) => p.content
       ),
     ]
       .filter(Boolean)
       .join("\n\n");
 
-    /*
-     * Send everything to the parent page.
-     */
     onSendMessage?.({
       message: text,
       files,
@@ -768,6 +918,7 @@ export const ClaudeChatInput: React.FC<
         {/* TEXTAREA */}
 
         <div className="relative mb-2">
+
           <textarea
             ref={textareaRef}
             value={message}
@@ -782,6 +933,7 @@ export const ClaudeChatInput: React.FC<
             rows={1}
             autoFocus
           />
+
         </div>
 
         {/* BOTTOM BUTTONS */}
@@ -844,6 +996,7 @@ export const ClaudeChatInput: React.FC<
             </button>
 
           </div>
+
         </div>
       </div>
 
@@ -982,7 +1135,96 @@ export const ClaudeChatInput: React.FC<
             )}
 
         </div>
+
       </div>
+
+      {/* ================================================== */}
+      {/* VALIDATION ERRORS                                 */}
+      {/* ================================================== */}
+
+      {validationErrors.length > 0 && (
+        <div className="mt-3 mx-2 md:mx-0 rounded-lg border border-red-900/60 bg-red-950/20 px-3 py-2">
+
+          <div className="mb-1 text-xs font-medium text-red-400">
+            Please fix the following:
+          </div>
+
+          <ul className="space-y-1">
+
+            {validationErrors.map(
+              (error, index) => (
+                <li
+                  key={index}
+                  className="text-xs text-red-400"
+                >
+                  • {error}
+                </li>
+              )
+            )}
+
+          </ul>
+
+        </div>
+      )}
+
+      {/* ================================================== */}
+      {/* GENERATED PROMPT                                 */}
+      {/* ================================================== */}
+
+      {generatedPrompt && (
+        <div className="mt-4 mx-2 md:mx-0 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900/70">
+
+          {/* PROMPT HEADER */}
+
+          <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+
+            <div>
+
+              <h3 className="text-sm font-medium text-white">
+                Generated Prompt
+              </h3>
+
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Ready to copy and paste into the chatbox
+              </p>
+
+            </div>
+
+            <button
+              type="button"
+              onClick={copyPrompt}
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
+            >
+
+              {copiedPrompt ? (
+                <>
+                  <Icons.Check className="h-3.5 w-3.5" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  Copy Prompt
+                </>
+              )}
+
+            </button>
+
+          </div>
+
+          {/* PROMPT TEXT */}
+
+          <div className="p-4">
+
+            <textarea
+              value={generatedPrompt}
+              readOnly
+              className="min-h-[260px] w-full resize-y rounded-lg border border-zinc-800 bg-black/30 p-3 text-xs leading-relaxed text-zinc-300 outline-none"
+            />
+
+          </div>
+
+        </div>
+      )}
 
       {/* ================================================== */}
       {/* DRAG AND DROP OVERLAY                             */}
@@ -1006,11 +1248,15 @@ export const ClaudeChatInput: React.FC<
         multiple
         className="hidden"
         onChange={(e) => {
+
           if (e.target.files) {
-            handleFiles(e.target.files);
+            handleFiles(
+              e.target.files
+            );
           }
 
           e.target.value = "";
+
         }}
       />
 
@@ -1029,6 +1275,7 @@ export const ClaudeChatInput: React.FC<
         </p>
 
       </div>
+
     </div>
   );
 };
