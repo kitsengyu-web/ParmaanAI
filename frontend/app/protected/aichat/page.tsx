@@ -1,581 +1,204 @@
+// frontend/app/protected/aichat/page.tsx
 "use client";
 
-import {
-  memo,
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-  useMemo,
-  type ReactNode,
-} from "react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AgentChat, type AgentMessage, type ChatStatus } from "@/components/aichat";
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+// Backend base URL. Set NEXT_PUBLIC_API_BASE_URL to override; otherwise the
+// deployed Render backend is used. (The old NEXT_PUBLIC_API_URL localhost
+// fallback was removed so a stale .env.local value can't override Render.)
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://pramaan-backend-cphc.onrender.com"
+).replace(/\/$/, "");
+
+interface Recommendation {
+  standard_number: string;
+  standard_name: string;
+  relevance: string;
+  explanation: string;
+  certification: string | null;
+  testing: string[];
+  amendments: string[];
+  relationships: string[];
 }
 
-export type ChatStatus = "ready" | "streaming" | "submitted" | "idle";
+interface RecommendationResponse {
+  query: string;
+  requirement_understanding: string;
+  recommendations: Recommendation[];
+  retrieved_standards: { standard_number: string; standard_name: string }[];
+  notes: string[];
+}
 
-export type MessagePart =
-  | { type: "text"; text: string }
-  | { type: "error"; title?: string; message: string };
+function formatResponse(data: RecommendationResponse): string {
+  const lines: string[] = [data.requirement_understanding];
 
-export type AgentMessage = {
-  id: string;
-  role: "user" | "assistant";
-  parts: MessagePart[];
-};
+  if (data.recommendations.length > 0) {
+    lines.push("", "Recommended standards:");
+    data.recommendations.forEach((rec, i) => {
+      lines.push(
+        `${i + 1}. ${rec.standard_number} — ${rec.standard_name} (${rec.relevance})`,
+      );
+      lines.push(`   ${rec.explanation}`);
+      if (rec.certification) lines.push(`   Certification: ${rec.certification}`);
+      if (rec.testing.length) lines.push(`   Testing: ${rec.testing.join(", ")}`);
+      if (rec.amendments.length) lines.push(`   Amendments: ${rec.amendments.join(", ")}`);
+      if (rec.relationships.length) lines.push(`   Related: ${rec.relationships.join(", ")}`);
+    });
+  } else {
+    lines.push("", "No relevant standards were found for this query.");
+  }
 
-export type AttachedImage = {
-  id: string;
-  filename: string;
-  url: string;
-  size?: number;
-};
+  if (data.notes.length) {
+    lines.push("", "Notes:");
+    data.notes.forEach((n) => lines.push(`- ${n}`));
+  }
 
-export type AttachedFile = {
-  id: string;
-  filename: string;
-  size?: number;
-};
+  return lines.join("\n");
+}
 
-export type AgentChatProps = {
-  messages: AgentMessage[];
-  onSend?: (message: { role: "user"; content: string }) => void;
-  onStop?: () => void;
-  status?: ChatStatus;
-  error?: { message: string; title?: string };
-  emptyStatePosition?: "default" | "center";
-  attachments?: {
-    onAttach?: () => void;
-    images?: AttachedImage[];
-    files?: AttachedFile[];
-    onRemoveImage?: (id: string) => void;
-    onRemoveFile?: (id: string) => void;
-  };
-  className?: string;
-};
+let idCounter = 0;
+function nextId() {
+  idCounter += 1;
+  return `msg-${Date.now()}-${idCounter}`;
+}
 
-const SendIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="19" x2="12" y2="5" />
-    <polyline points="5 12 12 5 19 12" />
-  </svg>
-);
+export default function AiChatPage() {
+  const [messages, setMessages] = useState<AgentMessage[]>([]);
+  const [status, setStatus] = useState<ChatStatus>("ready");
+  const abortRef = useRef<AbortController | null>(null);
+  const initializedRef = useRef(false);
 
-const StopIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-    <rect x="6" y="6" width="12" height="12" rx="1" />
-  </svg>
-);
+  const sendQuery = useCallback(async (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
 
-const PaperclipIcon = () => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
-  </svg>
-);
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-const XIcon = ({ size = 12 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
+    setStatus("submitted");
 
-const FileIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-    <polyline points="14 2 14 8 20 8" />
-  </svg>
-);
+    try {
+      // POST { query, retrieval_top_k: 30, final_top_k: 5 }
+      const res = await fetch(`${API_BASE_URL}/recommend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: trimmed,
+          retrieval_top_k: 30,
+          final_top_k: 5,
+        }),
+        signal: controller.signal,
+      });
 
-const CopyIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-  </svg>
-);
+      // Render may return a non-JSON error page (e.g. 502 while waking up).
+      let data: unknown = null;
+      try {
+        data = await res.json();
+      } catch {
+        /* non-JSON body */
+      }
 
-const CheckIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
+      if (!res.ok) {
+        const detail =
+          data && typeof data === "object" && "detail" in data
+            ? String((data as { detail?: unknown }).detail)
+            : `Server responded with status ${res.status}.`;
 
-function CopyButton({ text, className }: { text: string; className?: string }) {
-  const [copied, setCopied] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+        const title =
+          res.status === 404
+            ? "No relevant standards found"
+            : res.status === 503
+              ? "Service unavailable"
+              : res.status === 400
+                ? "Invalid request"
+                : "Request failed";
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
+        setMessages((prev) => [
+          ...prev,
+          { id: nextId(), role: "assistant", parts: [{ type: "error", title, message: detail }] },
+        ]);
+        return;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: nextId(),
+          role: "assistant",
+          parts: [{ type: "text", text: formatResponse(data as RecommendationResponse) }],
+        },
+      ]);
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: nextId(),
+          role: "assistant",
+          parts: [
+            {
+              type: "error",
+              title: "Connection error",
+              message: err instanceof Error ? err.message : "Could not reach the backend.",
+            },
+          ],
+        },
+      ]);
+    } finally {
+      setStatus("ready");
+    }
   }, []);
 
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      // Fallback for non-secure contexts / older browsers
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand("copy");
-      } finally {
-        document.body.removeChild(ta);
-      }
-    }
-    setCopied(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setCopied(false), 2000);
-  }, [text]);
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      aria-label={copied ? "Copied" : "Copy message"}
-      title={copied ? "Copied" : "Copy"}
-      className={cn(
-        "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0",
-        "text-neutral-500 dark:text-neutral-400",
-        "hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100",
-        "transition-all duration-150",
-        className,
-      )}
-    >
-      {copied ? <CheckIcon /> : <CopyIcon />}
-    </button>
-  );
-}
-
-function UserBubble({ text }: { text: string }) {
-  return (
-    <div className="group flex items-center justify-end gap-1">
-      <CopyButton
-        text={text}
-        className="opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100"
-      />
-      <div className="max-w-[80%] px-3.5 py-2 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-sm text-neutral-900 dark:text-neutral-100 whitespace-pre-wrap break-words">
-        {text}
-      </div>
-    </div>
-  );
-}
-
-function AssistantText({ text }: { text: string }) {
-  return (
-    <div className="group flex flex-col items-start gap-1">
-      <div className="max-w-[90%] text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap break-words">
-        {text}
-      </div>
-      <CopyButton
-        text={text}
-        className="-ml-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100"
-      />
-    </div>
-  );
-}
-
-function ErrorBubble({
-  title = "Something went wrong",
-  message,
-}: {
-  title?: string;
-  message: string;
-}) {
-  return (
-    <div className="flex justify-start">
-      <div className="border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm rounded-[8px]">
-        <div className="font-medium text-neutral-900 dark:text-neutral-100">
-          {title}
-        </div>
-        <div className="mt-0.5 text-neutral-500 dark:text-neutral-400">
-          {message}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MessageList({ messages }: { messages: AgentMessage[] }) {
-  return (
-    <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
-      <div className="mx-auto max-w-[640px] flex flex-col gap-4">
-        {messages.map((m) => (
-          <div key={m.id} className="flex flex-col gap-2">
-            {m.parts.map((part, i) => {
-              if (part.type === "error") {
-                return (
-                  <ErrorBubble
-                    key={i}
-                    title={part.title}
-                    message={part.message}
-                  />
-                );
-              }
-              if (m.role === "user") {
-                return <UserBubble key={i} text={part.text} />;
-              }
-              return <AssistantText key={i} text={part.text} />;
-            })}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ImageChip({
-  url,
-  onRemove,
-}: {
-  url: string;
-  onRemove?: () => void;
-}) {
-  return (
-    <div className="relative w-12 h-12 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 group">
-      <img src={url} alt="" className="w-full h-full object-cover" />
-      {onRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label="Remove image"
-          className="absolute top-0.5 right-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-neutral-900/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <XIcon size={10} />
-        </button>
-      )}
-    </div>
-  );
-}
-
-function FileChip({
-  filename,
-  size,
-  onRemove,
-}: {
-  filename: string;
-  size?: number;
-  onRemove?: () => void;
-}) {
-  const sizeText =
-    size === undefined
-      ? null
-      : size < 1024
-        ? `${size} B`
-        : size < 1024 * 1024
-          ? `${(size / 1024).toFixed(1)} KB`
-          : `${(size / (1024 * 1024)).toFixed(1)} MB`;
-  return (
-    <div className="inline-flex items-center gap-2 px-2 py-1.5 rounded-md bg-neutral-100 dark:bg-neutral-800 group">
-      <span className="text-neutral-500 dark:text-neutral-400">
-        <FileIcon />
-      </span>
-      <div className="flex flex-col min-w-0">
-        <span className="text-xs font-medium truncate text-neutral-900 dark:text-neutral-100 max-w-[140px]">
-          {filename}
-        </span>
-        {sizeText && (
-          <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
-            {sizeText}
-          </span>
-        )}
-      </div>
-      {onRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label="Remove file"
-          className="inline-flex items-center justify-center w-5 h-5 rounded-full text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <XIcon />
-        </button>
-      )}
-    </div>
-  );
-}
-
-function InputBar({
-  onSend,
-  onStop,
-  status = "ready",
-  placeholder = "Send a message...",
-  attachments,
-  className,
-  value: controlledValue,
-  onChange,
-  disabled,
-}: {
-  onSend?: (m: { role: "user"; content: string }) => void;
-  onStop?: () => void;
-  status?: ChatStatus;
-  placeholder?: string;
-  attachments?: AgentChatProps["attachments"];
-  className?: string;
-  value?: string;
-  onChange?: (v: string) => void;
-  disabled?: boolean;
-}) {
-  const [internal, setInternal] = useState("");
-  const isControlled = controlledValue !== undefined;
-  const input = isControlled ? controlledValue : internal;
-  const setInput = useCallback(
-    (v: string) => {
-      if (isControlled) onChange?.(v);
-      else setInternal(v);
+  const handleSend = useCallback(
+    ({ content }: { role: "user"; content: string }) => {
+      setMessages((prev) => [
+        ...prev,
+        { id: nextId(), role: "user", parts: [{ type: "text", text: content }] },
+      ]);
+      void sendQuery(content);
     },
-    [isControlled, onChange],
+    [sendQuery],
   );
-  const ref = useRef<HTMLTextAreaElement>(null);
-  const isStreaming = status === "streaming" || status === "submitted";
-  const hasInput = input.trim().length > 0;
 
-  const images = attachments?.images ?? [];
-  const files = attachments?.files ?? [];
-  const hasContext = images.length > 0 || files.length > 0;
+  const handleStop = useCallback(() => {
+    abortRef.current?.abort();
+    setStatus("ready");
+  }, []);
 
+  // Pick up the combined query (text + pasted + file contents) stashed by
+  // /protected before it routed here.
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.height = "0";
-    const next = Math.min(el.scrollHeight, 120);
-    el.style.height = `${next}px`;
-    el.style.overflowY = el.scrollHeight > 120 ? "auto" : "hidden";
-  }, [input]);
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
-  const submit = useCallback(() => {
-    const trimmed = input.trim();
-    if (!trimmed || isStreaming || disabled) return;
-    onSend?.({ role: "user", content: trimmed });
-    setInput("");
-  }, [input, isStreaming, disabled, onSend, setInput]);
+    const stashed = sessionStorage.getItem("chat:lastMessage");
+    if (stashed) {
+      sessionStorage.removeItem("chat:lastMessage");
+      setMessages([{ id: nextId(), role: "user", parts: [{ type: "text", text: stashed }] }]);
+      void sendQuery(stashed);
+    }
+  }, [sendQuery]);
 
   return (
-    <div className={cn("shrink-0 px-3 pb-3 w-full", className)}>
-      <div className="mx-auto max-w-[640px]">
-        <div
-          className="relative cursor-text rounded-[16px] bg-white dark:bg-neutral-900 shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-800"
-          onClick={(e) => {
-            if (
-              e.target === e.currentTarget ||
-              !(e.target as HTMLElement).closest("button, textarea")
-            ) {
-              ref.current?.focus();
-            }
-          }}
-        >
-          <div
-            className={cn(
-              "grid transition-[grid-template-rows] duration-200 ease-out",
-              hasContext ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-            )}
-          >
-            <div className="overflow-hidden">
-              {hasContext && (
-                <div className="flex flex-wrap items-center gap-1.5 px-2.5 pt-2.5 pb-0.5">
-                  {images.map((img) => (
-                    <ImageChip
-                      key={img.id}
-                      url={img.url}
-                      onRemove={
-                        attachments?.onRemoveImage
-                          ? () => attachments.onRemoveImage!(img.id)
-                          : undefined
-                      }
-                    />
-                  ))}
-                  {files.map((f) => (
-                    <FileChip
-                      key={f.id}
-                      filename={f.filename}
-                      size={f.size}
-                      onRemove={
-                        attachments?.onRemoveFile
-                          ? () => attachments.onRemoveFile!(f.id)
-                          : undefined
-                      }
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="pt-3 pb-0 pr-3 pl-3.5 min-h-[44px]">
-            <textarea
-              ref={ref}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  submit();
-                }
-              }}
-              placeholder={placeholder}
-              disabled={disabled}
-              rows={1}
-              className={cn(
-                "w-full resize-none bg-transparent border-0 outline-none text-[14px] leading-[1.6] text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 overflow-hidden",
-                disabled && "opacity-50 cursor-not-allowed",
-              )}
-            />
-          </div>
-          <div className="flex items-center justify-between gap-3 px-2 pt-1 pb-2">
-            <div className="flex items-center gap-1 min-w-0">
-              {attachments?.onAttach && (
-                <button
-                  type="button"
-                  onClick={attachments.onAttach}
-                  aria-label="Attach"
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  <PaperclipIcon />
-                </button>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                aria-label={isStreaming ? "Stop" : "Send"}
-                onClick={() => {
-                  if (isStreaming) onStop?.();
-                  else if (hasInput) submit();
-                }}
-                className={cn(
-                  "inline-flex items-center justify-center w-8 h-8 rounded-full transition-all duration-150",
-                  isStreaming || hasInput
-                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                    : "bg-neutral-200 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600",
-                )}
-              >
-                {isStreaming ? <StopIcon /> : <SendIcon />}
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className="flex h-screen flex-col bg-[#0d0d0e] text-zinc-100">
+      <header className="flex h-14 shrink-0 items-center border-b border-zinc-800 px-4 md:px-6">
+        <span className="text-sm font-semibold tracking-wide text-zinc-200">
+          Pramaan Assistant
+        </span>
+      </header>
+      <div className="min-h-0 flex-1">
+        <AgentChat
+          messages={messages}
+          onSend={handleSend}
+          onStop={handleStop}
+          status={status}
+          emptyStatePosition="center"
+          className="h-full"
+        />
       </div>
     </div>
   );
 }
-
-export const AgentChat = memo(function AgentChat({
-  messages,
-  onSend,
-  onStop,
-  status = "ready",
-  error,
-  emptyStatePosition = "default",
-  attachments,
-  className,
-}: AgentChatProps) {
-  const [draft, setDraft] = useState("");
-
-  const messagesWithError: AgentMessage[] = useMemo(() => {
-    if (!error) return messages;
-    return [
-      ...messages,
-      {
-        id: "agent-chat-error",
-        role: "assistant" as const,
-        parts: [
-          {
-            type: "error" as const,
-            title: error.title ?? "Request failed",
-            message: error.message,
-          },
-        ],
-      },
-    ];
-  }, [messages, error]);
-
-  const isEmpty = !error && messages.length === 0;
-  const isCenteredEmpty = isEmpty && emptyStatePosition === "center";
-
-  const inputBarNode: ReactNode = (
-    <InputBar
-      onSend={onSend}
-      onStop={onStop}
-      status={status}
-      attachments={attachments}
-      value={draft}
-      onChange={setDraft}
-      className={isCenteredEmpty ? "px-0 pb-0" : undefined}
-    />
-  );
-
-  return (
-    <div className={cn("flex flex-col h-full min-h-0", className)}>
-      {isCenteredEmpty ? (
-        <div className="flex-1 min-h-0 flex items-center justify-center px-4 py-4">
-          <div className="w-full max-w-[640px]">{inputBarNode}</div>
-        </div>
-      ) : (
-        <MessageList messages={messagesWithError} />
-      )}
-      {!isCenteredEmpty && inputBarNode}
-    </div>
-  );
-});
-
-export default AgentChat;
