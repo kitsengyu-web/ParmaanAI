@@ -127,95 +127,9 @@ const FileIcon = () => (
   </svg>
 );
 
-const CopyIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-
-function CopyButton({ text, className }: { text: string; className?: string }) {
-  const [copied, setCopied] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      // Fallback for non-secure contexts / older browsers
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand("copy");
-      } finally {
-        document.body.removeChild(ta);
-      }
-    }
-    setCopied(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setCopied(false), 2000);
-  }, [text]);
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      aria-label={copied ? "Copied" : "Copy message"}
-      title={copied ? "Copied" : "Copy"}
-      className={cn(
-        "inline-flex items-center justify-center w-7 h-7 rounded-md shrink-0",
-        "text-neutral-500 dark:text-neutral-400",
-        "hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100",
-        "transition-all duration-150",
-        className,
-      )}
-    >
-      {copied ? <CheckIcon /> : <CopyIcon />}
-    </button>
-  );
-}
-
 function UserBubble({ text }: { text: string }) {
   return (
-    <div className="group flex items-center justify-end gap-1">
-      <CopyButton
-        text={text}
-        className="opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100"
-      />
+    <div className="flex justify-end">
       <div className="max-w-[80%] px-3.5 py-2 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-sm text-neutral-900 dark:text-neutral-100 whitespace-pre-wrap break-words">
         {text}
       </div>
@@ -225,14 +139,10 @@ function UserBubble({ text }: { text: string }) {
 
 function AssistantText({ text }: { text: string }) {
   return (
-    <div className="group flex flex-col items-start gap-1">
+    <div className="flex justify-start">
       <div className="max-w-[90%] text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap break-words">
         {text}
       </div>
-      <CopyButton
-        text={text}
-        className="-ml-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100"
-      />
     </div>
   );
 }
