@@ -14,6 +14,12 @@ export default function ProtectedChatPage() {
   const [isNavigating, setIsNavigating] = useState(false);
 
   const router = useRouter();
+  const pathname = usePathname();
+
+// Reset the "Preparing your results..." screen whenever we (re)arrive here
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [pathname]);
 
   const supabase = useMemo(() => createClient(), []);
 
