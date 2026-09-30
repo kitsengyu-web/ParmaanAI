@@ -396,6 +396,7 @@ function AssistantText({ text }: { text: string }) {
       <div className="w-full text-sm leading-relaxed text-zinc-100 break-words">
         <MarkdownText text={text} />
       </div>
+      <DownloadCard text={text} />
       <CopyButton
         text={text}
         className="opacity-0 group-hover:opacity-100 focus:opacity-100"
