@@ -35,6 +35,7 @@
     "@splinetool/runtime": "latest",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "jspdf": "^3.0.1",
     "three": "^0.170.0"
   },
   "devDependencies": {
