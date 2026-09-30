@@ -235,7 +235,7 @@ function ErrorBubble({
   );
 }
 
-function MessageList({ messages }: { messages: AgentMessage[] }) {
+export function MessageList({ messages }: { messages: AgentMessage[] }) {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6">
       <div className="mx-auto max-w-[640px] flex flex-col gap-4">
