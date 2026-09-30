@@ -2,7 +2,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AgentChat, type AgentMessage, type ChatStatus } from "@/components/aichat";
+import { MessageList, type AgentMessage } from "@/components/aichat";
+import { ClaudeChatInput } from "@/components/chat";
 
 // Backend base URL. Set NEXT_PUBLIC_API_BASE_URL to override; otherwise the
 // deployed Render backend is used. (The old NEXT_PUBLIC_API_URL localhost
@@ -66,7 +67,6 @@ function nextId() {
 
 export default function AiChatPage() {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
-  const [status, setStatus] = useState<ChatStatus>("ready");
   const abortRef = useRef<AbortController | null>(null);
   const initializedRef = useRef(false);
 
@@ -77,8 +77,6 @@ export default function AiChatPage() {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-
-    setStatus("submitted");
 
     try {
       // POST { query, retrieval_top_k: 30, final_top_k: 5 }
@@ -147,26 +145,21 @@ export default function AiChatPage() {
           ],
         },
       ]);
-    } finally {
-      setStatus("ready");
     }
   }, []);
 
-  const handleSend = useCallback(
-    ({ content }: { role: "user"; content: string }) => {
+  // Called by ClaudeChatInput on submit. `query` is the combined text
+  // (typed + pasted + Product/Department/Scope lines).
+  const handleSendMessage = useCallback(
+    (data: { query: string }) => {
       setMessages((prev) => [
         ...prev,
-        { id: nextId(), role: "user", parts: [{ type: "text", text: content }] },
+        { id: nextId(), role: "user", parts: [{ type: "text", text: data.query }] },
       ]);
-      void sendQuery(content);
+      void sendQuery(data.query);
     },
     [sendQuery],
   );
-
-  const handleStop = useCallback(() => {
-    abortRef.current?.abort();
-    setStatus("ready");
-  }, []);
 
   // Pick up the combined query (text + pasted + file contents) stashed by
   // /protected before it routed here.
@@ -189,15 +182,11 @@ export default function AiChatPage() {
           Pramaan Assistant
         </span>
       </header>
-      <div className="min-h-0 flex-1">
-        <AgentChat
-          messages={messages}
-          onSend={handleSend}
-          onStop={handleStop}
-          status={status}
-          emptyStatePosition="center"
-          className="h-full"
-        />
+
+      <MessageList messages={messages} />
+
+      <div className="shrink-0 px-3 pb-3">
+        <ClaudeChatInput onSendMessage={handleSendMessage} />
       </div>
     </div>
   );
