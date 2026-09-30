@@ -33,7 +33,8 @@
     "tailwind-merge": "^3.3.0",
     "@splinetool/react-spline": "latest",
     "@splinetool/runtime": "latest",
-    
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "three": "^0.170.0"
   },
   "devDependencies": {
