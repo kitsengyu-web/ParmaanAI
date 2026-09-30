@@ -168,57 +168,9 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* SECTION 5: 3D Diagram Section (Embedded Iframe) */}
-      <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 py-24 px-6 md:px-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="w-full h-[500px] bg-zinc-950 rounded-2xl border border-zinc-800 relative overflow-hidden shadow-2xl">
-            <div className="pointer-events-none absolute -top-40 right-0 md:right-60 md:-top-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+      
 
-            <div className="flex flex-col md:flex-row h-full relative z-10">
-  <div className="w-full md:w-[38%] md:shrink-0 p-8 md:p-12 flex flex-col justify-center">
-    <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-      System Architecture Visualizer
-    </h2>
-    <p className="mt-4 text-zinc-400 max-w-md text-base md:text-lg">
-      Explore multi-layer standard mappings and automated compliance flows through a real-time spatial diagram.
-    </p>
-  </div>
-
-  <div className="w-full md:w-[62%] relative h-full min-h-[300px]">
-    <iframe
-      src="https://my.spline.design/3ddiagram-VcOnr5i8Dz2Y5LytmThorA64/"
-      className="w-full h-full border-0"
-      title="System Architecture Diagram"
-    />
-    {/* Solid cover over Spline's "Built with Spline" watermark (bottom-right of the embed) */}
-    <div className="absolute bottom-3 right-3 z-20 h-10 w-40 rounded-md bg-black" />
-  </div>
-</div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 6: Reasoning core — Spline AI brain */}
-      <section className="relative z-20 w-full bg-black border-t border-zinc-800/40 px-6 py-24">
-        <div className="relative mx-auto max-w-5xl">
-          <div className="relative h-[420px] md:h-[560px] w-full">
-            <ErrorBoundary fallback={<div className="h-full w-full bg-zinc-950 rounded-2xl" />}>
-              <AiBrain className="h-full w-full" />
-            </ErrorBoundary>
-          </div>
-
-          <div className="relative md:absolute md:bottom-8 md:right-0 md:max-w-md rounded-2xl border border-zinc-800 bg-black/70 backdrop-blur-md p-6 mt-6 md:mt-0">
-            <h2 className="text-2xl font-semibold text-white mb-2">
-              Grounded reasoning, not guesswork
-            </h2>
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              Every recommendation traces back to a retrieved BIS record. Pramaan
-              reranks and reasons over real standards data — it never invents an
-              IS number or a certification requirement.
-            </p>
-          </div>
-        </div>
-      </section>
+      
 
       {/* SECTION 7: Before / After Comparison
           The wrapper's `dark` class forces the shadcn dark tokens
