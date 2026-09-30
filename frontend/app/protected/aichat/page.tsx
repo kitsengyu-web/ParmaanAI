@@ -4,6 +4,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageList, type AgentMessage } from "@/components/aichat";
 import { ClaudeChatInput } from "@/components/chat";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // Backend base URL. Set NEXT_PUBLIC_API_BASE_URL to override; otherwise the
 // deployed Render backend is used. (The old NEXT_PUBLIC_API_URL localhost
