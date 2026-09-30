@@ -79,8 +79,7 @@ function formatResponse(data: RecommendationResponse): string {
   return out.join("\n");
 }
 
-  return lines.join("\n");
-}
+
 
 let idCounter = 0;
 function nextId() {
