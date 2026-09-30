@@ -1070,10 +1070,7 @@ export const ClaudeChatInput: React.FC<
          GO TO RESULT PAGE
       --------------------------------------------- */
 
-      router.push(
-        "/protected/result"
-      );
-
+     
     } catch (err) {
 
       const error =
