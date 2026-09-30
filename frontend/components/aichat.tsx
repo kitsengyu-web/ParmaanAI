@@ -276,6 +276,119 @@ function MarkdownText({ text }: { text: string }) {
     </ReactMarkdown>
   );
 }
+function markdownToPlain(md: string): string {
+  return md
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/(^|[^*])\*(?!\s)(.+?)\*/g, "$1$2")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^---+$/gm, "----------------------------------------")
+    .replace(/^\s*[-*]\s+/gm, "- ");
+}
+
+function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadTxt(markdown: string, filename: string) {
+  const blob = new Blob([markdownToPlain(markdown)], {
+    type: "text/plain;charset=utf-8",
+  });
+  saveBlob(blob, `${filename}.txt`);
+}
+
+async function downloadPdf(markdown: string, filename: string) {
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+  const margin = 48;
+  const lineHeight = 16;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+
+  const lines: string[] = doc.splitTextToSize(
+    markdownToPlain(markdown),
+    pageWidth - margin * 2,
+  );
+
+  let y = margin;
+  lines.forEach((line) => {
+    if (y > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+    doc.text(line, margin, y);
+    y += lineHeight;
+  });
+
+  doc.save(`${filename}.pdf`);
+}
+
+function DownloadCard({ text }: { text: string }) {
+  const [busy, setBusy] = useState(false);
+  const filename = `pramaan-recommendations-${new Date()
+    .toISOString()
+    .slice(0, 10)}`;
+
+  const handlePdf = async () => {
+    setBusy(true);
+    try {
+      await downloadPdf(text, filename);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const rows = [
+    { label: "Text", ext: "TXT", onClick: () => downloadTxt(text, filename) },
+    { label: "PDF", ext: "PDF", onClick: handlePdf },
+  ];
+
+  return (
+    <div className="mt-2 flex w-full max-w-md flex-col gap-2">
+      {rows.map((row) => (
+        <div
+          key={row.ext}
+          className="flex items-center justify-between gap-3 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-zinc-300">
+              <FileIcon />
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-zinc-100">
+                Pramaan recommendations
+              </div>
+              <div className="text-xs text-zinc-400">
+                Document · {row.ext}
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={row.onClick}
+            disabled={busy}
+            className="shrink-0 rounded-lg border border-zinc-600 px-3 py-1.5 text-xs font-medium text-zinc-100 transition-colors hover:bg-zinc-800 disabled:opacity-50"
+          >
+            Download
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function AssistantText({ text }: { text: string }) {
   return (
