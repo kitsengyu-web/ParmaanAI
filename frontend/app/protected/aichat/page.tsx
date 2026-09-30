@@ -1,6 +1,7 @@
 // frontend/app/protected/aichat/page.tsx
 "use client";
-
+import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageList, type AgentMessage } from "@/components/aichat";
 import { ClaudeChatInput } from "@/components/chat";
