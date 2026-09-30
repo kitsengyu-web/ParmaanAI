@@ -1,16 +1,14 @@
 // frontend/app/protected/aichat/page.tsx
 "use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageList, type AgentMessage } from "@/components/aichat";
 import { ClaudeChatInput } from "@/components/chat";
-import ReactMarkdown, { type Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 // Backend base URL. Set NEXT_PUBLIC_API_BASE_URL to override; otherwise the
-// deployed Render backend is used. (The old NEXT_PUBLIC_API_URL localhost
-// fallback was removed so a stale .env.local value can't override Render.)
+// deployed Render backend is used.
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "https://pramaan-backend-cphc.onrender.com"
@@ -80,8 +78,6 @@ function formatResponse(data: RecommendationResponse): string {
   return out.join("\n");
 }
 
-
-
 let idCounter = 0;
 function nextId() {
   idCounter += 1;
@@ -89,9 +85,17 @@ function nextId() {
 }
 
 export default function AiChatPage() {
+  const router = useRouter();
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const abortRef = useRef<AbortController | null>(null);
   const initializedRef = useRef(false);
+
+  const handleNewChat = useCallback(() => {
+    abortRef.current?.abort();
+    sessionStorage.removeItem("chat:lastMessage");
+    sessionStorage.removeItem("chat:lastRequest");
+    router.push("/protected");
+  }, [router]);
 
   const sendQuery = useCallback(async (query: string) => {
     const trimmed = query.trim();
@@ -184,8 +188,7 @@ export default function AiChatPage() {
     [sendQuery],
   );
 
-  // Pick up the combined query (text + pasted + file contents) stashed by
-  // /protected before it routed here.
+  // Pick up the combined query stashed by /protected before it routed here.
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
@@ -200,10 +203,19 @@ export default function AiChatPage() {
 
   return (
     <div className="flex h-screen flex-col bg-[#0d0d0e] text-zinc-100">
-      <header className="flex h-14 shrink-0 items-center border-b border-zinc-800 px-4 md:px-6">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800 px-4 md:px-6">
         <span className="text-sm font-semibold tracking-wide text-zinc-200">
           Pramaan Assistant
         </span>
+
+        <button
+          type="button"
+          onClick={handleNewChat}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>New chat</span>
+        </button>
       </header>
 
       <MessageList messages={messages} />
