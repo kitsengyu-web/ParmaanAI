@@ -35,28 +35,49 @@ interface RecommendationResponse {
 }
 
 function formatResponse(data: RecommendationResponse): string {
-  const lines: string[] = [data.requirement_understanding];
+  const out: string[] = [];
+
+  out.push(data.requirement_understanding);
 
   if (data.recommendations.length > 0) {
-    lines.push("", "Recommended standards:");
+    out.push("", "## Recommended standards");
+
     data.recommendations.forEach((rec, i) => {
-      lines.push(
-        `${i + 1}. ${rec.standard_number} — ${rec.standard_name} (${rec.relevance})`,
+      out.push(
+        "",
+        `### ${i + 1}. ${rec.standard_number}`,
+        `*${rec.standard_name}*`,
+        "",
+        `**Relevance:** ${rec.relevance}`,
+        "",
+        rec.explanation,
       );
-      lines.push(`   ${rec.explanation}`);
-      if (rec.certification) lines.push(`   Certification: ${rec.certification}`);
-      if (rec.testing.length) lines.push(`   Testing: ${rec.testing.join(", ")}`);
-      if (rec.amendments.length) lines.push(`   Amendments: ${rec.amendments.join(", ")}`);
-      if (rec.relationships.length) lines.push(`   Related: ${rec.relationships.join(", ")}`);
+
+      if (rec.certification) {
+        out.push("", `**Certification:** ${rec.certification}`);
+      }
+      if (rec.testing.length) {
+        out.push("", "**Testing:**", ...rec.testing.map((t) => `- ${t}`));
+      }
+      if (rec.amendments.length) {
+        out.push("", "**Amendments:**", ...rec.amendments.map((a) => `- ${a}`));
+      }
+      if (rec.relationships.length) {
+        out.push("", "**Related standards:**", ...rec.relationships.map((r) => `- ${r}`));
+      }
+
+      if (i < data.recommendations.length - 1) out.push("", "---");
     });
   } else {
-    lines.push("", "No relevant standards were found for this query.");
+    out.push("", "No relevant standards were found for this query.");
   }
 
   if (data.notes.length) {
-    lines.push("", "Notes:");
-    data.notes.forEach((n) => lines.push(`- ${n}`));
+    out.push("", "## Notes", ...data.notes.map((n) => `- ${n}`));
   }
+
+  return out.join("\n");
+}
 
   return lines.join("\n");
 }
