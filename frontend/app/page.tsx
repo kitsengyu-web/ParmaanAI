@@ -14,11 +14,17 @@ import AnimatedWaveFooter from "@/components/footer";
 
 const PramaanLogoIcon = () => (
   <svg
-    viewBox="0 0 200 200"
+    viewBox="30 22 160 160"
     className="h-full w-full text-black fill-current"
     xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
   >
-    <path d="M43.5 138.8L59.3 46.2C60.5 39 67.2 34 74.5 35.2L124.6 43.6C131.8 44.8 136.8 51.5 135.6 58.7L129.8 92.6C128.6 99.8 121.9 104.8 114.7 103.6L86.4 98.9L79.1 141.2C77.9 148.4 71.2 153.4 63.9 152.2L49.5 149.8C42.3 148.6 37.3 141.9 38.5 134.7L43.5 138.8Z" />
+    {/* Bold geometric "P" with a counter (hole) */}
+    <path
+      fillRule="evenodd"
+      d="M60 40 H115 a45 45 0 0 1 0 90 H92 V165 H60 Z
+         M92 70 V100 H115 a15 15 0 0 0 0 -30 Z"
+    />
   </svg>
 );
 
