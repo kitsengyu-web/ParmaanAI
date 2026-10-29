@@ -40,17 +40,16 @@ export default async function Home() {
           <nav className="w-full flex justify-center border-b border-zinc-800/50 h-16 bg-black/40 backdrop-blur-md">
             <div className="w-full max-w-7xl flex justify-between items-center p-3 px-4 sm:px-6 text-sm text-zinc-100">
               <Link
-                href="/"
-                className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
-              >
-                <div className="h-8 w-8 overflow-hidden rounded-xl bg-white p-1 flex items-center justify-center shrink-0">
-                  <PramaanLogoIcon />
-                </div>
-                <span className="text-base font-bold tracking-tight text-white font-sans">
-                  Pramaan
-                </span>
-              </Link>
-
+  href="/"
+  className="flex items-center gap-3 transition-opacity hover:opacity-90"
+>
+  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-white p-2 flex items-center justify-center shadow-[0_0_24px_-4px_rgba(255,255,255,0.45)] ring-1 ring-white/30">
+    <PramaanLogoIcon />
+  </div>
+  <span className="text-xl font-bold tracking-tight text-white font-sans">
+    Pramaan
+  </span>
+</Link>
               <div className="flex items-center">
                 <div className="flex gap-2">
                   <Button
